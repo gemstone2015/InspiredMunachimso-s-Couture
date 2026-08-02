@@ -1,0 +1,21 @@
+# Dependencies
+**/node_modules/
+
+# Environment secrets
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Runtime data and uploads
+backend/data/
+backend/uploads/
+
+# Build output
+frontend/dist/
+
+# Logs and OS/editor files
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

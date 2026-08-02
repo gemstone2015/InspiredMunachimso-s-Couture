@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Inspired Munachimso Couture</title>
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Inspired Munachimso<span>couture</span> · Admin</div>
+    <button id="logoutBtn" class="ghost-btn">Log out</button>
+  </header>
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="products">Products & Media</button>
+    <button class="tab-btn" data-tab="preorders">Pre-Orders</button>
+    <button class="tab-btn" data-tab="messages">Messages</button>
+    <button class="tab-btn" data-tab="appointments">Appointments</button>
+    <button class="tab-btn" data-tab="testimonials">Testimonials</button>
+  </nav>
+  <main class="content">
+    <section id="tab-products" class="tab-panel active">
+      <div class="panel-head"><div><h2>Products</h2><p class="helper">Add products, then upload multiple images and videos.</p></div><button id="newProductBtn" class="primary-btn">+ Add product</button></div>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th>Preview</th><th>Name</th><th>Category</th><th>Price</th><th>Media</th><th>Visible</th><th></th></tr></thead><tbody id="productsBody"></tbody></table></div>
+    </section>
+    <section id="tab-preorders" class="tab-panel"><div class="panel-head"><div><h2>Orders & Payments</h2><p class="helper">Set the deposit amount and order stage. Customers can track and pay using their reference.</p></div></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Date / Reference</th><th>Customer</th><th>Style</th><th>Order stage</th><th>Deposit</th><th>Payment</th><th></th></tr></thead><tbody id="preordersBody"></tbody></table></div></section>
+    <section id="tab-appointments" class="tab-panel"><div class="panel-head"><div><h2>Appointments</h2><p class="helper">Confirm, reschedule or complete appointment requests.</p></div></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Reference</th><th>Customer</th><th>Type</th><th>Preferred date</th><th>Status</th><th></th></tr></thead><tbody id="appointmentsBody"></tbody></table></div></section>
+    <section id="tab-testimonials" class="tab-panel"><div class="panel-head"><div><h2>Testimonials</h2><p class="helper">Add and publish client reviews on the homepage.</p></div><button id="addTestimonialBtn" class="primary-btn">+ Add testimonial</button></div><div id="testimonialFormWrap" class="inline-editor hidden"><input id="t_name" placeholder="Customer name"><input id="t_location" placeholder="Location"><input id="t_rating" type="number" min="1" max="5" value="5"><textarea id="t_quote" placeholder="Customer review"></textarea><label class="checkbox-row"><input id="t_published" type="checkbox"> Publish now</label><button id="saveTestimonialBtn" class="primary-btn">Save testimonial</button></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Customer</th><th>Review</th><th>Rating</th><th>Published</th><th></th></tr></thead><tbody id="testimonialsBody"></tbody></table></div></section>
+    <section id="tab-messages" class="tab-panel"><div class="panel-head"><h2>Messages</h2></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Date</th><th>Type</th><th>Customer</th><th>Phone</th><th>Message</th><th>Status</th><th></th></tr></thead><tbody id="messagesBody"></tbody></table></div></section>
+  </main>
+
+  <div id="productModal" class="modal-overlay hidden">
+    <form id="productForm" class="modal-card wide-modal">
+      <div class="modal-title-row"><h3 id="productModalTitle">Add product</h3><button type="button" id="closeProductBtn" class="icon-btn" aria-label="Close">×</button></div>
+      <input type="hidden" id="p_id">
+      <div class="form-grid">
+        <label>Name <input type="text" id="p_name" required maxlength="120"></label>
+        <label>Category <select id="p_category"><option value="ready-to-wear">Ready-to-wear</option><option value="igbo-attire">Igbo attire</option><option value="womenswear">Women’s wear</option><option value="menswear">Men’s wear</option><option value="bridal">Bridal</option><option value="children">Children</option><option value="cap">Traditional cap</option><option value="accessory">Accessory</option><option value="alteration">Alteration example</option></select></label>
+        <label>Tag <input type="text" id="p_tag" placeholder="Women · Made to order" maxlength="100"></label>
+        <label>Price <input type="text" id="p_price" placeholder="£120 or Enquire" maxlength="40"></label>
+        <label>Currency <select id="p_currency"><option value="GBP">GBP (£)</option><option value="NGN">NGN (₦)</option><option value="USD">USD ($)</option></select></label>
+        <label>Display order <input type="number" id="p_sort_order" min="0" value="0"></label>
+        <label>Igbo attire style
+          <select id="p_style">
+            <option value="">Select a style</option>
+            <option>Igbo men’s traditional wear</option>
+            <option>Isi Agu outfits</option>
+            <option>George wrappers and blouses</option>
+            <option>Igbo bridal wear</option>
+            <option>Igbo wedding couple sets</option>
+            <option>Chieftaincy outfits</option>
+            <option>Children’s Igbo attire</option>
+            <option>Family matching outfits</option>
+            <option>Custom ceremonial wear</option>
+          </select>
+        </label>
+        <label>Gender / audience <select id="p_gender"><option value="">Not specified</option><option value="women">Women</option><option value="men">Men</option><option value="couples">Couples</option><option value="children">Children</option><option value="family">Family</option><option value="unisex">Unisex</option></select></label>
+        <label>Fabric <input type="text" id="p_fabric" placeholder="Isi Agu, George, lace…" maxlength="120"></label>
+        <label>Colour <input type="text" id="p_colour" placeholder="Red, black and gold" maxlength="100"></label>
+        <label>Available sizes <input type="text" id="p_sizes" placeholder="Made to measure, S–XXL" maxlength="100"></label>
+        <label>Production time <input type="text" id="p_production_time" placeholder="2–4 weeks" maxlength="100"></label>
+      </div>
+      <label>Description <textarea id="p_description" rows="4" maxlength="1500"></textarea></label>
+      <div class="check-grid"><label class="checkbox-row"><input type="checkbox" id="p_available" checked> Visible on website</label><label class="checkbox-row"><input type="checkbox" id="p_featured"> Featured item</label><label class="checkbox-row"><input type="checkbox" id="p_made_to_order" checked> Made to order</label></div>
+
+      <section id="mediaSection" class="media-section hidden">
+        <div class="media-head"><div><h4>Images and videos</h4><p class="helper">Select up to 12 files at once. The first upload becomes the cover.</p></div></div>
+        <label class="upload-box">Choose images or videos<input type="file" id="p_media_files" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime" multiple></label>
+        <div id="uploadStatus" class="helper"></div>
+        <div id="mediaGrid" class="media-grid"></div>
+      </section>
+
+      <div class="modal-actions"><button type="button" id="cancelProductBtn" class="ghost-btn">Cancel</button><button type="submit" class="primary-btn">Save product</button></div>
+    </form>
+  </div>
+  <script src="admin.js"></script>
+</body>
+</html>

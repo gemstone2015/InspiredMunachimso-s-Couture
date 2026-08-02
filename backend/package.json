@@ -1,0 +1,31 @@
+{
+  "name": "inspiredmunachimsocouture-backend",
+  "version": "1.4.0",
+  "description": "Node.js 24-compatible backend API for Inspired Munachimso Couture.",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "seed": "node seed.js",
+    "reset-admin": "node seed.js --admin-only",
+    "check": "node -e \"require('./db'); console.log('Database OK')\"",
+    "check:syntax": "node scripts/check-syntax.js",
+    "verify": "npm run check && npm run check:syntax"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "cloudinary": "^2.5.1",
+    "multer": "^2.0.2",
+    "helmet": "^8.0.0",
+    "express-rate-limit": "^7.4.1",
+    "stripe": "^18.5.0"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}
