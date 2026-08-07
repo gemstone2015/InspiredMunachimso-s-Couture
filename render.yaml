@@ -1,0 +1,47 @@
+services:
+  - type: web
+    name: inspiredmunachimso-api
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/ready
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: PUBLIC_SITE_URL
+        sync: false
+      - key: PUBLIC_API_URL
+        sync: false
+      - key: WHATSAPP_UK_NUMBER
+        value: "447523864253"
+      - key: WHATSAPP_NG_NUMBER
+        value: "2347397023326"
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: CLOUDINARY_FOLDER
+        value: inspiredmunachimso-couture
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: PAYSTACK_SECRET_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: BUSINESS_EMAIL
+        sync: false

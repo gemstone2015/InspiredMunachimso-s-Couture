@@ -2,10 +2,93 @@ import React, { useEffect, useRef, useState } from "react";
 import "./index.css";
 import { api } from "./api";
 
-const CONTACTS = {
-  uk: { label: "United Kingdom", display: "07523 864253", tel: "+447523864253", whatsapp: "447523864253" },
-  ng: { label: "Nigeria", display: "+234 739 702 3326", tel: "+2347397023326", whatsapp: "2347397023326" },
+const DEFAULT_HERO = {
+  hero_enabled: "1",
+  hero_type: "video",
+  hero_video_url: String(import.meta.env.VITE_HERO_VIDEO_URL || "/assets/hero.mp4").trim(),
+  hero_image_url: "",
+  hero_kicker: "African heritage · modern elegance",
+  hero_title: "Clothing that carries your story.",
+  hero_highlight: "your story.",
+  hero_copy: "Bespoke Igbo attire and contemporary African couture, designed with precision for clients in the United Kingdom and Nigeria.",
+  hero_primary_text: "Explore collections",
+  hero_primary_link: "#collections",
+  hero_secondary_text: "Book a private consultation",
 };
+
+const DEFAULT_CRAFT = {
+  craft_enabled: "1",
+  craft_video_url: "/assets/atelier.mp4",
+  craft_kicker: "Crafted, not produced",
+  craft_title: "Every line begins by hand.",
+  craft_copy: "Measurements, fabric, cut, structure and finish are considered as one process. The result is clothing that does not merely fit the body—it belongs to it.",
+  craft_step_1_number: "01",
+  craft_step_1_text: "Personal consultation",
+  craft_step_2_number: "02",
+  craft_step_2_text: "Measured and cut",
+  craft_step_3_number: "03",
+  craft_step_3_text: "Finished by hand",
+};
+
+
+const DEFAULT_BUSINESS = {
+  announcement_enabled: "0",
+  announcement_text: "Private consultations available in the UK and Nigeria.",
+  business_name: "Inspiredmunachimso’s Couture",
+  business_tagline: "African heritage, tailored for today.",
+  business_email: "",
+  uk_phone_display: "07523 864253",
+  uk_phone_tel: "+447523864253",
+  uk_whatsapp: "447523864253",
+  ng_phone_display: "+234 739 702 3326",
+  ng_phone_tel: "+2347397023326",
+  ng_whatsapp: "2347397023326",
+  uk_location: "United Kingdom",
+  ng_location: "Nigeria",
+  opening_hours: "By appointment",
+  instagram_url: "",
+  facebook_url: "",
+  tiktok_url: "",
+  youtube_url: "",
+  footer_text: "UK · Nigeria · Worldwide enquiries",
+};
+
+const DEFAULT_CONTENT = {
+  about_kicker: "The house",
+  about_title: "Tradition is not a costume. It is a language.",
+  about_copy: "Inspiredmunachimso’s Couture creates pieces that honour identity while feeling entirely current. Every garment is shaped around the person, the occasion and the story it needs to tell.",
+  about_link_text: "Discover the heritage collection",
+  about_link_url: "#igbo-heritage",
+  services_kicker: "The service",
+  services_title: "A considered journey, from idea to final fitting.",
+  service_1_number: "01",
+  service_1_title: "Personal consultation",
+  service_1_copy: "Share your occasion, inspiration, preferred fabric and timing with the atelier.",
+  service_2_number: "02",
+  service_2_title: "Measurements and design",
+  service_2_copy: "Measurements, proportions and design details are confirmed before cutting begins.",
+  service_3_number: "03",
+  service_3_title: "Cut and construction",
+  service_3_copy: "The garment is cut, assembled and refined with attention to structure and movement.",
+  service_4_number: "04",
+  service_4_title: "Fitting and finish",
+  service_4_copy: "Final adjustments, hand finishing and quality checks complete the piece.",
+};
+
+function HeroHeading({ title, highlight }) {
+  const safeTitle = title || DEFAULT_HERO.hero_title;
+  const safeHighlight = highlight && safeTitle.includes(highlight) ? highlight : "";
+  if (!safeHighlight) return safeTitle;
+  const [before, after = ""] = safeTitle.split(safeHighlight);
+  return <>{before}<span>{safeHighlight}</span>{after}</>;
+}
+
+function contactsFromBusiness(business) {
+  return {
+    uk: { label: business.uk_location || "United Kingdom", display: business.uk_phone_display, tel: business.uk_phone_tel, whatsapp: business.uk_whatsapp },
+    ng: { label: business.ng_location || "Nigeria", display: business.ng_phone_display, tel: business.ng_phone_tel, whatsapp: business.ng_whatsapp },
+  };
+}
 const waLink = (number, msg) => `https://wa.me/${number}${msg ? `?text=${encodeURIComponent(msg)}` : ""}`;
 
 function ProductMedia({ product, className = "product-media" }) {
@@ -17,7 +100,7 @@ function ProductMedia({ product, className = "product-media" }) {
   return <img className={className} src={media?.thumbnail_url || media?.media_url || product.image_url} alt={media?.alt_text || product.name} loading="lazy" />;
 }
 
-function ProductDetails({ product, open, onClose, onContact }) {
+function ProductDetails({ product, open, onClose, onContact, onWishlist }) {
   const [activeIndex, setActiveIndex] = useState(0);
   useEffect(() => { setActiveIndex(0); }, [product?.id]);
   useEffect(() => {
@@ -47,20 +130,20 @@ function ProductDetails({ product, open, onClose, onContact }) {
         {product.description && <p className="product-description">{product.description}</p>}
         {facts.length > 0 && <dl className="product-facts">{facts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>}
         {product.made_to_order ? <p className="made-note">Made to order and finished to your measurements.</p> : null}
-        <button type="button" className="gold-btn" onClick={() => onContact(product)}>Enquire about this look</button>
+        <div className="product-actions"><button type="button" className="gold-btn" onClick={() => onContact(product)}>Enquire about this look</button><button type="button" className="outline-btn" onClick={() => onWishlist(product)}>♡ Save to wishlist</button></div>
       </div>
     </article>
   </div>;
 }
 
-function ContactChooser({ open, onClose, message }) {
+function ContactChooser({ open, onClose, message, contacts }) {
   useEffect(() => {
     const close = (e) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", close);
     return () => window.removeEventListener("keydown", close);
   }, [onClose]);
   if (!open) return null;
-  return <div className="contact-modal" onClick={onClose} role="presentation"><div className="contact-card" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Choose contact location"><button className="contact-close" onClick={onClose} aria-label="Close">×</button><div className="kicker">Choose your location</div><h3 className="disp">Chat with our atelier</h3>{Object.entries(CONTACTS).map(([key, c]) => <div className="contact-option" key={key}><div><strong>{c.label}</strong><span>{c.display}</span></div><a className="gold-btn" href={waLink(c.whatsapp, message)} target="_blank" rel="noreferrer">WhatsApp</a></div>)}</div></div>;
+  return <div className="contact-modal" onClick={onClose} role="presentation"><div className="contact-card" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Choose contact location"><button className="contact-close" onClick={onClose} aria-label="Close">×</button><div className="kicker">Choose your location</div><h3 className="disp">Chat with our atelier</h3>{Object.entries(contacts).map(([key, c]) => <div className="contact-option" key={key}><div><strong>{c.label}</strong><span>{c.display}</span></div><a className="gold-btn" href={waLink(c.whatsapp, message)} target="_blank" rel="noreferrer">WhatsApp</a></div>)}</div></div>;
 }
 
 function useReveal() {
@@ -152,8 +235,11 @@ const STEPS = [
   { n: "04", title: "Ready", body: "Final press, quality check, and it's ready for pickup or delivery." },
 ];
 
-function PreorderForm() {
-  const [form, setForm] = useState({ customer_name: "", phone: "", email: "", style_inspiration: "", fabric: "", event_date: "", notes: "" });
+function PreorderForm({ customer, token }) {
+  const [form, setForm] = useState({ customer_name: customer ? `${customer.first_name} ${customer.last_name}` : "", phone: customer?.phone || "", email: customer?.email || "", style_inspiration: "", fabric: "", event_date: "", notes: "", measurement_profile_id: "" });
+  const [savedMeasurements, setSavedMeasurements] = useState([]);
+  useEffect(() => { if (token) api.customerMeasurements(token).then(setSavedMeasurements).catch(() => {}); }, [token]);
+  useEffect(() => { if (customer) setForm((f) => ({ ...f, customer_name: `${customer.first_name} ${customer.last_name}`, phone: customer.phone || "", email: customer.email || "" })); }, [customer]);
   const [files, setFiles] = useState([]);
   const [status, setStatus] = useState({ state: "idle", message: "", reference: "" });
 
@@ -163,10 +249,10 @@ function PreorderForm() {
     e.preventDefault();
     setStatus({ state: "loading", message: "" });
     try {
-      const result = await api.submitPreorder(form);
+      const result = await api.submitPreorder(form, token);
       if (files.length) await api.uploadOrderFiles(result.order_reference, form.phone, files);
       setStatus({ state: "success", message: "Received — keep your order reference safe for tracking.", reference: result.order_reference });
-      setForm({ customer_name: "", phone: "", email: "", style_inspiration: "", fabric: "", event_date: "", notes: "" });
+      setForm({ customer_name: customer ? `${customer.first_name} ${customer.last_name}` : "", phone: customer?.phone || "", email: customer?.email || "", style_inspiration: "", fabric: "", event_date: "", notes: "", measurement_profile_id: "" });
       setFiles([]);
       if (result.whatsappLink) window.open(result.whatsappLink, "_blank");
     } catch (err) {
@@ -194,6 +280,12 @@ function PreorderForm() {
       <label>Event date
         <input type="date" value={form.event_date} onChange={update("event_date")} />
       </label>
+      {token && <label>Saved measurements
+        <select value={form.measurement_profile_id} onChange={update("measurement_profile_id")}>
+          <option value="">Do not attach a saved profile</option>
+          {savedMeasurements.map((item) => <option key={item.id} value={item.id}>{item.profile_name}</option>)}
+        </select>
+      </label>}
       <label>Notes
         <textarea rows="3" value={form.notes} onChange={update("notes")} placeholder="Anything else we should know" />
       </label>
@@ -289,6 +381,76 @@ function ContactForm() {
   );
 }
 
+
+function CustomerPortal({ open, onClose, token, customer, onSession, onLogout }) {
+  const [mode, setMode] = useState(customer ? "dashboard" : "login");
+  const [status, setStatus] = useState({ state: "idle", message: "" });
+  const [dashboard, setDashboard] = useState(null);
+  const [measurements, setMeasurements] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
+  const [auth, setAuth] = useState({ first_name: "", last_name: "", email: "", phone: "", password: "", confirm: "", reset_token: "" });
+  const [profile, setProfile] = useState(customer || {});
+  const [quoteMeasurement, setQuoteMeasurement] = useState("");
+  const [measurement, setMeasurement] = useState({ profile_name: "My measurements", chest: "", waist: "", hip: "", shoulder: "", neck: "", sleeve: "", height: "", weight: "", trouser_length: "", shoe_size: "", notes: "" });
+
+  const refreshDashboard = async () => setDashboard(await api.customerDashboard(token));
+  useEffect(() => { if (open && token) { setMode("dashboard"); refreshDashboard().catch(() => onLogout()); } }, [open, token]);
+  useEffect(() => { setProfile(customer || {}); }, [customer]);
+  useEffect(() => { const close = (e) => e.key === "Escape" && onClose(); window.addEventListener("keydown", close); return () => window.removeEventListener("keydown", close); }, [onClose]);
+  if (!open) return null;
+
+  const submitAuth = async (e) => {
+    e.preventDefault(); setStatus({ state: "loading", message: "" });
+    try {
+      if (mode === "forgot") {
+        const result = await api.customerForgotPassword(auth.email);
+        setAuth((a) => ({ ...a, reset_token: result.development_reset_token || "" }));
+        setMode("reset"); setStatus({ state: "success", message: result.message }); return;
+      }
+      if (mode === "reset") {
+        if (auth.password !== auth.confirm) throw new Error("Passwords do not match.");
+        const result = await api.customerResetPassword({ token: auth.reset_token, password: auth.password });
+        setMode("login"); setStatus({ state: "success", message: result.message }); return;
+      }
+      if (mode === "register" && auth.password !== auth.confirm) throw new Error("Passwords do not match.");
+      const result = mode === "register" ? await api.customerRegister(auth) : await api.customerLogin(auth);
+      onSession(result.token, result.customer); setMode("dashboard"); setStatus({ state: "success", message: "Welcome to your account." });
+    } catch (err) { setStatus({ state: "error", message: err.message }); }
+  };
+  const openSection = async (next) => {
+    setMode(next); setStatus({ state: "idle", message: "" });
+    if (next === "dashboard" || next === "orders" || next === "appointments") await refreshDashboard();
+    if (next === "measurements") setMeasurements(await api.customerMeasurements(token));
+    if (next === "wishlist") { setWishlist(await api.customerWishlist(token)); setMeasurements(await api.customerMeasurements(token)); }
+  };
+  const saveMeasurement = async (e) => { e.preventDefault(); await api.saveMeasurement(token, measurement); setMeasurement({ profile_name:"My measurements",chest:"",waist:"",hip:"",shoulder:"",neck:"",sleeve:"",height:"",weight:"",trouser_length:"",shoe_size:"",notes:"" }); setMeasurements(await api.customerMeasurements(token)); };
+  const saveProfile = async (e) => { e.preventDefault(); try { const updated=await api.updateCustomerProfile(token,profile); onSession(token,updated); setStatus({state:"success",message:"Profile saved."}); } catch(err){setStatus({state:"error",message:err.message});} };
+  const requestQuote = async (item) => { try { const result=await api.wishlistEnquiry(token,item.id,{measurement_profile_id:quoteMeasurement||null}); setStatus({state:"success",message:`Quote requested. Your reference is ${result.order_reference}.`}); await refreshDashboard(); } catch(err){setStatus({state:"error",message:err.message});} };
+
+  return <div className="customer-portal-overlay" onClick={onClose}><section className="customer-portal" onClick={(e) => e.stopPropagation()}><button className="portal-close" onClick={onClose}>×</button>
+    {!customer ? <div className="portal-auth"><p className="section-kicker">Private client area</p><h2>{mode === "register" ? "Create your account" : mode === "forgot" ? "Reset your password" : mode === "reset" ? "Choose a new password" : "Welcome back"}</h2><p>Save measurements, view orders and keep favourite designs together.</p><form onSubmit={submitAuth}>
+      {mode === "register" && <div className="portal-two"><label>First name<input required value={auth.first_name} onChange={(e)=>setAuth({...auth,first_name:e.target.value})}/></label><label>Last name<input required value={auth.last_name} onChange={(e)=>setAuth({...auth,last_name:e.target.value})}/></label></div>}
+      {mode !== "reset" && <label>Email<input type="email" required value={auth.email} onChange={(e)=>setAuth({...auth,email:e.target.value})}/></label>}
+      {mode === "register" && <label>Phone<input required value={auth.phone} onChange={(e)=>setAuth({...auth,phone:e.target.value})}/></label>}
+      {mode === "reset" && <label>Reset token<input required value={auth.reset_token} onChange={(e)=>setAuth({...auth,reset_token:e.target.value})}/></label>}
+      {!["forgot"].includes(mode) && <label>Password<input type="password" minLength="8" required value={auth.password} onChange={(e)=>setAuth({...auth,password:e.target.value})}/></label>}
+      {["register","reset"].includes(mode) && <label>Confirm password<input type="password" minLength="8" required value={auth.confirm} onChange={(e)=>setAuth({...auth,confirm:e.target.value})}/></label>}
+      <button className="primary-btn" disabled={status.state === "loading"}>{status.state === "loading" ? "Please wait…" : mode === "register" ? "Create account" : mode === "forgot" ? "Prepare reset" : mode === "reset" ? "Change password" : "Log in"}</button>{status.message && <p className={`form-status ${status.state}`}>{status.message}</p>}
+    </form>
+    {mode === "login" && <><button className="portal-switch" onClick={()=>setMode("register")}>New client? Create an account</button><button className="portal-switch" onClick={()=>setMode("forgot")}>Forgot your password?</button></>}
+    {mode !== "login" && <button className="portal-switch" onClick={()=>setMode("login")}>Back to login</button>}</div>
+    : <div className="portal-shell"><aside><p className="section-kicker">Client portal</p><h3>{customer.first_name} {customer.last_name}</h3><button className={mode==='dashboard'?'active':''} onClick={()=>openSection('dashboard')}>Overview</button><button className={mode==='orders'?'active':''} onClick={()=>openSection('orders')}>My orders</button><button className={mode==='appointments'?'active':''} onClick={()=>openSection('appointments')}>Appointments</button><button className={mode==='wishlist'?'active':''} onClick={()=>openSection('wishlist')}>Wishlist</button><button className={mode==='measurements'?'active':''} onClick={()=>openSection('measurements')}>Measurements</button><button className={mode==='profile'?'active':''} onClick={()=>openSection('profile')}>Profile & address</button><button onClick={onLogout}>Log out</button></aside><div className="portal-content">
+      {status.message && <p className={`form-status ${status.state}`}>{status.message}</p>}
+      {mode==='dashboard' && <><p className="section-kicker">Your account</p><h2>Welcome back, {customer.first_name}.</h2><div className="portal-metrics"><div><strong>{dashboard?.metrics?.activeOrders||0}</strong><span>Active orders</span></div><div><strong>{dashboard?.metrics?.appointments||0}</strong><span>Appointments</span></div><div><strong>{dashboard?.metrics?.wishlist||0}</strong><span>Saved looks</span></div><div><strong>{dashboard?.metrics?.measurements||0}</strong><span>Measurement profiles</span></div></div><p className="portal-note">Orders and appointments are linked automatically when the same email address is used.</p></>}
+      {mode==='orders' && <><h2>My orders</h2><div className="portal-list">{dashboard?.orders?.length ? dashboard.orders.map(o=><article key={o.id}><div><strong>{o.order_reference}</strong><span>{o.style_inspiration||'Bespoke order'}</span></div><b>{String(o.status).replaceAll('_',' ')}</b></article>) : <p>No orders are linked to this email yet.</p>}</div></>}
+      {mode==='appointments' && <><h2>Appointments</h2><div className="portal-list">{dashboard?.appointments?.length ? dashboard.appointments.map(a=><article key={a.id}><div><strong>{a.appointment_type.replaceAll('_',' ')}</strong><span>{a.preferred_date||'Date to be confirmed'} · {a.preferred_time||''}</span></div><b>{a.status}</b></article>) : <p>No appointments are linked to this email yet.</p>}</div></>}
+      {mode==='wishlist' && <><h2>Wishlist</h2><label className="wishlist-measurement">Measurements for quote<select value={quoteMeasurement} onChange={(e)=>setQuoteMeasurement(e.target.value)}><option value="">No saved profile</option>{measurements.map(m=><option key={m.id} value={m.id}>{m.profile_name}</option>)}</select></label><div className="portal-list">{wishlist.length ? wishlist.map(item=><article key={item.id}><div><strong>{item.name}</strong><span>{item.price||'Enquire for price'}</span></div><div className="portal-actions"><button onClick={()=>requestQuote(item)}>Request quote</button><button onClick={async()=>{await api.removeWishlist(token,item.id);setWishlist(await api.customerWishlist(token));}}>Remove</button></div></article>) : <p>Your wishlist is empty. Open a product and save it for later.</p>}</div></>}
+      {mode==='measurements' && <><h2>Measurement vault</h2><form className="measurement-form" onSubmit={saveMeasurement}><label>Profile name<input value={measurement.profile_name} onChange={e=>setMeasurement({...measurement,profile_name:e.target.value})}/></label>{['chest','waist','hip','shoulder','neck','sleeve','height','weight','trouser_length','shoe_size'].map(k=><label key={k}>{k.replaceAll('_',' ')}<input value={measurement[k]} onChange={e=>setMeasurement({...measurement,[k]:e.target.value})}/></label>)}<label className="wide">Notes<textarea value={measurement.notes} onChange={e=>setMeasurement({...measurement,notes:e.target.value})}/></label><button className="primary-btn">Save measurements</button></form><div className="portal-list">{measurements.map(m=><article key={m.id}><div><strong>{m.profile_name}</strong><span>Chest {m.chest||'—'} · Waist {m.waist||'—'} · Hip {m.hip||'—'}</span></div><button onClick={async()=>{await api.deleteMeasurement(token,m.id);setMeasurements(await api.customerMeasurements(token));}}>Delete</button></article>)}</div></>}
+      {mode==='profile' && <><h2>Profile & delivery address</h2><form className="profile-form" onSubmit={saveProfile}><div className="portal-two"><label>First name<input value={profile.first_name||''} onChange={e=>setProfile({...profile,first_name:e.target.value})}/></label><label>Last name<input value={profile.last_name||''} onChange={e=>setProfile({...profile,last_name:e.target.value})}/></label></div><label>Email<input value={profile.email||''} disabled/></label><label>Phone<input value={profile.phone||''} onChange={e=>setProfile({...profile,phone:e.target.value})}/></label><label>Address line 1<input value={profile.address||''} onChange={e=>setProfile({...profile,address:e.target.value})}/></label><label>Address line 2<input value={profile.address_line_2||''} onChange={e=>setProfile({...profile,address_line_2:e.target.value})}/></label><div className="portal-two"><label>City<input value={profile.city||''} onChange={e=>setProfile({...profile,city:e.target.value})}/></label><label>Postcode<input value={profile.postcode||''} onChange={e=>setProfile({...profile,postcode:e.target.value})}/></label></div><label>Country<input value={profile.country||''} onChange={e=>setProfile({...profile,country:e.target.value})}/></label><label>Preferred contact<select value={profile.preferred_contact||'whatsapp'} onChange={e=>setProfile({...profile,preferred_contact:e.target.value})}><option value="whatsapp">WhatsApp</option><option value="phone">Phone</option><option value="email">Email</option></select></label><button className="primary-btn">Save profile</button></form></>}
+    </div></div>}
+  </section></div>;
+}
+
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -298,7 +460,17 @@ export default function App() {
   const [contactOpen, setContactOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [liveTestimonials, setLiveTestimonials] = useState([]);
-  const [contactMessage, setContactMessage] = useState("Hello Inspired Munachimso Couture, I would like to make an enquiry.");
+  const [galleries, setGalleries] = useState([]);
+  const [managedCollections, setManagedCollections] = useState([]);
+  const [activeCampaign, setActiveCampaign] = useState(null);
+  const [contactMessage, setContactMessage] = useState("Hello Inspiredmunachimso’s Couture, I would like to make an enquiry.");
+  const [hero, setHero] = useState(DEFAULT_HERO);
+  const [craft, setCraft] = useState(DEFAULT_CRAFT);
+  const [content, setContent] = useState(DEFAULT_CONTENT);
+  const [business, setBusiness] = useState(DEFAULT_BUSINESS);
+  const [portalOpen, setPortalOpen] = useState(false);
+  const [customerToken, setCustomerToken] = useState(() => localStorage.getItem("customer_token") || "");
+  const [customer, setCustomer] = useState(() => { try { return JSON.parse(localStorage.getItem("customer_profile") || "null"); } catch { return null; } });
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -307,10 +479,15 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    api.getSiteSettings().then((settings) => { setHero({ ...DEFAULT_HERO, ...settings }); setCraft({ ...DEFAULT_CRAFT, ...settings }); setContent({ ...DEFAULT_CONTENT, ...settings }); setBusiness({ ...DEFAULT_BUSINESS, ...settings }); }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
     api.getProducts("ready-to-wear").then((rows) => rows.length && setLooks(rows)).catch(() => {});
     api.getProducts("cap").then((rows) => rows.length && setCaps(rows)).catch(() => {});
     api.getProducts("igbo-attire").then((rows) => rows.length && setIgboAttires(rows)).catch(() => {});
     api.getTestimonials().then((rows) => rows.length && setLiveTestimonials(rows)).catch(() => {});
+    api.getGalleries().then((rows) => setGalleries(rows)).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -338,7 +515,7 @@ export default function App() {
   };
 
   const enquireProduct = (product) => {
-    setContactMessage(`Hello Inspired Munachimso Couture, I would like to enquire about ${product?.name || "one of your designs"}.`);
+    setContactMessage(`Hello Inspiredmunachimso’s Couture, I would like to enquire about ${product?.name || "one of your designs"}.`);
     setSelectedProduct(null);
     setContactOpen(true);
   };
@@ -356,21 +533,27 @@ export default function App() {
   ];
 
   const testimonials = liveTestimonials.length ? liveTestimonials.map((t)=>({quote:t.quote,name:t.customer_name,location:t.location})) : fallbackTestimonials;
+  const contacts = contactsFromBusiness(business);
+  const socialLinks = [
+    ["Instagram", business.instagram_url], ["Facebook", business.facebook_url],
+    ["TikTok", business.tiktok_url], ["YouTube", business.youtube_url],
+  ].filter(([, url]) => url);
 
   return (
-    <div className="site-shell">
+    <div className="site-shell style-professional">
       <a className="skip-link" href="#main">Skip to content</a>
+      {business.announcement_enabled === "1" && business.announcement_text ? <div className="announcement-bar">{business.announcement_text}</div> : null}
 
-      <header className={`site-header ${scrolled ? "is-scrolled" : ""}`}>
+      <header className={`site-header ${scrolled ? "is-scrolled" : ""} ${business.announcement_enabled === "1" ? "has-announcement" : ""}`}>
         <div className="nav-inner">
-          <a href="#top" className="brand-lockup" aria-label="Inspired Munachimso Couture home">
-            <Monogram size={42} />
-            <span><strong>Inspired Munachimso</strong><em>Couture</em></span>
+          <a href="#top" className="brand-lockup" aria-label="Inspiredmunachimso’s Couture home">
+            <img className="brand-logo" src="/assets/inspiredmunachimso-igbo-logo.png" alt="" aria-hidden="true" />
+            <span><strong>Inspiredmunachimso’s</strong><em>Couture</em></span>
           </a>
           <nav className="desktop-nav" aria-label="Primary navigation">
             {navLinks.map((link) => <a key={link.href} href={link.href}>{link.label}</a>)}
           </nav>
-          <button type="button" className="nav-cta desktop-only" onClick={() => { setContactMessage("Hello Inspired Munachimso Couture, I would like to make an enquiry."); setContactOpen(true); }}>Book a consultation</button>
+          <button type="button" className="account-btn desktop-only" onClick={() => setPortalOpen(true)}>{customer ? `Hi, ${customer.first_name}` : "My account"}</button><button type="button" className="nav-cta desktop-only" onClick={() => { setContactMessage("Hello Inspiredmunachimso’s Couture, I would like to make an enquiry."); setContactOpen(true); }}>Book a consultation</button>
           <button type="button" className="menu-toggle mobile-only" onClick={() => setMenuOpen((value) => !value)} aria-expanded={menuOpen} aria-label="Toggle menu">
             <span /> <span />
           </button>
@@ -382,17 +565,18 @@ export default function App() {
       </header>
 
       <main id="main">
+        {activeCampaign ? <aside className="campaign-strip"><span>{activeCampaign.message || activeCampaign.name}</span><a href={activeCampaign.button_link || (activeCampaign.collection_slug ? `#collection-${activeCampaign.collection_slug}` : "#collections")}>{activeCampaign.button_text || "Explore"} →</a></aside> : null}
         <section id="top" className="luxury-hero">
-          <video autoPlay muted loop playsInline className="hero-film"><source src="/assets/hero.mp4" type="video/mp4" /></video>
+          {hero.hero_enabled === "1" && hero.hero_type === "video" && hero.hero_video_url ? <video autoPlay muted loop playsInline className="hero-film" key={hero.hero_video_url}><source src={hero.hero_video_url} type="video/mp4" /></video> : hero.hero_enabled === "1" && hero.hero_type === "image" && hero.hero_image_url ? <img className="hero-film" src={hero.hero_image_url} alt="Inspiredmunachimso’s Couture hero" /> : <div className="hero-film hero-film-fallback" aria-hidden="true" />}
           <div className="hero-overlay" />
           <div className="hero-grain" />
           <div className="hero-content">
-            <p className="hero-kicker">African heritage · modern elegance</p>
-            <h1>Clothing that carries <span>your story.</span></h1>
-            <p className="hero-copy">Bespoke Igbo attire and contemporary African couture, designed with precision for clients in the United Kingdom and Nigeria.</p>
+            <p className="hero-kicker">{hero.hero_kicker}</p>
+            <h1><HeroHeading title={hero.hero_title} highlight={hero.hero_highlight} /></h1>
+            <p className="hero-copy">{hero.hero_copy}</p>
             <div className="hero-actions">
-              <a className="primary-btn" href="#collections">Explore collections</a>
-              <button className="text-link" type="button" onClick={() => { setContactMessage("Hello Inspired Munachimso Couture, I would like to make an enquiry."); setContactOpen(true); }}>Book a private consultation <span>↗</span></button>
+              <a className="primary-btn" href={hero.hero_primary_link || "#collections"}>{hero.hero_primary_text}</a>
+              <button className="text-link" type="button" onClick={() => { setContactMessage("Hello Inspiredmunachimso’s Couture, I would like to make an enquiry."); setContactOpen(true); }}>{hero.hero_secondary_text} <span>↗</span></button>
             </div>
           </div>
           <div className="hero-meta"><span>UK</span><i /> <span>Nigeria</span><i /> <span>Worldwide enquiries</span></div>
@@ -401,10 +585,10 @@ export default function App() {
 
         <section id="intro" className="editorial-intro section-pad">
           <Reveal>
-            <p className="section-kicker">The house</p>
+            <p className="section-kicker">{content.about_kicker}</p>
             <div className="intro-grid">
-              <h2>Tradition is not a costume. It is a language.</h2>
-              <div><p>Inspired Munachimso Couture creates pieces that honour identity while feeling entirely current. Every garment is shaped around the person, the occasion and the story it needs to tell.</p><a href="#igbo-heritage" className="inline-arrow">Discover the heritage collection <span>→</span></a></div>
+              <h2>{content.about_title}</h2>
+              <div><p>{content.about_copy}</p><a href={content.about_link_url || "#igbo-heritage"} className="inline-arrow">{content.about_link_text} <span>→</span></a></div>
             </div>
           </Reveal>
         </section>
@@ -415,8 +599,9 @@ export default function App() {
             <p>Explore the house through three distinct expressions of craft.</p>
           </div>
           <div className="collection-panels">
-            {collectionCards.map((item, index) => <Reveal key={item.title} delay={index * 0.08}><a href={item.href} className={`collection-panel ${item.className}`}><span>{item.eyebrow}</span><div><h3>{item.title}</h3><p>{item.copy}</p><b>Explore collection ↗</b></div></a></Reveal>)}
+            {(managedCollections.length ? managedCollections.slice(0,6).map((item,index)=>({title:item.name,eyebrow:item.subtitle||"Featured collection",copy:item.description||"Explore the collection.",href:`#collection-${item.slug}`,className:`collection-${(index%3)+1}`,cover:item.cover_url})) : collectionCards).map((item, index) => <Reveal key={item.title} delay={index * 0.08}><a href={item.href} className={`collection-panel ${item.className}`} style={item.cover?{backgroundImage:`linear-gradient(180deg,rgba(13,12,15,.12),rgba(13,12,15,.86)),url(${item.cover})`}:undefined}><span>{item.eyebrow}</span><div><h3>{item.title}</h3><p>{item.copy}</p><b>Explore collection ↗</b></div></a></Reveal>)}
           </div>
+          {managedCollections.map(collection => <section key={collection.id} id={`collection-${collection.slug}`} className="managed-collection-block"><div className="section-heading compact"><div><p className="section-kicker">{collection.subtitle || "Collection"}</p><h2>{collection.name}</h2><p>{collection.description}</p></div></div><div className="luxury-product-grid">{collection.products.slice(0,6).map((product,index)=><article key={product.id} className="luxury-product-card" onClick={()=>openProduct(product)} role="button" tabIndex={0}><div className="luxury-media"><ProductMedia product={product} className="luxury-product-media"/><span className="quick-view">View look</span></div><div className="luxury-product-copy"><div><p>{product.style||product.tag||collection.name}</p><h3>{product.name}</h3></div><span>{product.price||"Enquire"}</span></div></article>)}</div></section>)}
         </section>
 
         <section id="igbo-heritage" className="heritage-section section-pad">
@@ -433,8 +618,8 @@ export default function App() {
         </section>
 
         <section className="craft-banner">
-          <div className="craft-media"><video controls muted loop playsInline><source src="/assets/atelier.mp4" type="video/mp4" /></video></div>
-          <div className="craft-copy"><Reveal><p className="section-kicker">Crafted, not produced</p><h2>Every line begins by hand.</h2><p>Measurements, fabric, cut, structure and finish are considered as one process. The result is clothing that does not merely fit the body—it belongs to it.</p><div className="craft-stats"><div><strong>01</strong><span>Personal consultation</span></div><div><strong>02</strong><span>Measured and cut</span></div><div><strong>03</strong><span>Finished by hand</span></div></div></Reveal></div>
+          <div className="craft-media">{craft.craft_enabled === "1" && craft.craft_video_url ? <video controls muted loop playsInline key={craft.craft_video_url}><source src={craft.craft_video_url} type="video/mp4" /></video> : <div className="craft-media-placeholder" aria-label="Craft video currently unavailable"><span>Craft film coming soon</span></div>}</div>
+          <div className="craft-copy"><Reveal><p className="section-kicker">{craft.craft_kicker}</p><h2>{craft.craft_title}</h2><p>{craft.craft_copy}</p><div className="craft-stats"><div><strong>{craft.craft_step_1_number}</strong><span>{craft.craft_step_1_text}</span></div><div><strong>{craft.craft_step_2_number}</strong><span>{craft.craft_step_2_text}</span></div><div><strong>{craft.craft_step_3_number}</strong><span>{craft.craft_step_3_text}</span></div></div></Reveal></div>
         </section>
 
         <section id="ready-to-wear" className="ready-section section-pad">
@@ -445,13 +630,13 @@ export default function App() {
         </section>
 
         <section id="caps" className="caps-luxury section-pad">
-          <div className="caps-copy"><Reveal><p className="section-kicker">Traditional caps</p><h2>The final mark of occasion.</h2><p>Hand-finished caps in your fabric or ours, shaped for weddings, traditional ceremonies, titles and distinguished everyday wear.</p><button type="button" className="primary-btn" onClick={() => { setContactMessage("Hello Inspired Munachimso Couture, I would like to make an enquiry."); setContactOpen(true); }}>Commission a cap</button></Reveal></div>
+          <div className="caps-copy"><Reveal><p className="section-kicker">Traditional caps</p><h2>The final mark of occasion.</h2><p>Hand-finished caps in your fabric or ours, shaped for weddings, traditional ceremonies, titles and distinguished everyday wear.</p><button type="button" className="primary-btn" onClick={() => { setContactMessage("Hello Inspiredmunachimso’s Couture, I would like to make an enquiry."); setContactOpen(true); }}>Commission a cap</button></Reveal></div>
           <div className="caps-showcase">{caps.slice(0, 4).map((cap) => <article key={cap.id} onClick={() => openProduct(cap)} role="button" tabIndex={0}><ProductMedia product={cap} className="caps-showcase-media"/><div><h3>{cap.name}</h3><p>{cap.tag}</p></div></article>)}</div>
         </section>
 
         <section id="services" className="services-section section-pad">
-          <Reveal><p className="section-kicker">The service</p><h2>A considered journey, from idea to final fitting.</h2></Reveal>
-          <div className="service-steps">{STEPS.map((step) => <div key={step.n}><span>{step.n}</span><h3>{step.title}</h3><p>{step.body}</p></div>)}</div>
+          <Reveal><p className="section-kicker">{content.services_kicker}</p><h2>{content.services_title}</h2></Reveal>
+          <div className="service-steps">{[1,2,3,4].map((number) => <div key={number}><span>{content[`service_${number}_number`]}</span><h3>{content[`service_${number}_title`]}</h3><p>{content[`service_${number}_copy`]}</p></div>)}</div>
         </section>
 
         <section className="testimonial-section section-pad">
@@ -460,13 +645,13 @@ export default function App() {
         </section>
 
         <section id="atelier" className="atelier-editorial section-pad">
-          <div><Reveal><p className="section-kicker">Inside the atelier</p><h2>Where fabric becomes form.</h2><p>Follow the work from first cut to final press. This space will grow as new fittings, details and finished looks are added through the admin dashboard.</p></Reveal></div>
-          <div className="atelier-tiles"><div className="atelier-tile tile-one"><span>Cutting</span></div><div className="atelier-tile tile-two"><span>Finishing</span></div><div className="atelier-tile tile-three"><span>Fitting</span></div></div>
+          <div><Reveal><p className="section-kicker">Inside the atelier</p><h2>Where fabric becomes form.</h2><p>Explore finished looks, fittings, weddings and behind-the-scenes moments selected by the atelier.</p></Reveal></div>
+          {galleries.length ? <div className="public-gallery-albums">{galleries.map((album)=><article className="public-gallery-album" key={album.id}><div className="public-gallery-heading"><div><p className="section-kicker">Portfolio album</p><h3>{album.title}</h3><p>{album.description}</p></div><span>{album.items.length} moments</span></div><div className="public-gallery-grid">{album.items.slice(0,6).map(item=><figure key={item.id}>{item.media_type==='video'?<video src={item.media_url} controls muted playsInline preload="metadata"/>:<img src={item.thumbnail_url||item.media_url} alt={item.caption||album.title} loading="lazy"/>}{item.caption?<figcaption>{item.caption}</figcaption>:null}</figure>)}</div></article>)}</div> : <div className="atelier-tiles"><div className="atelier-tile tile-one"><span>Cutting</span></div><div className="atelier-tile tile-two"><span>Finishing</span></div><div className="atelier-tile tile-three"><span>Fitting</span></div></div>}
         </section>
 
         <section id="preorder" className="consultation-section section-pad">
-          <div className="consultation-copy"><Reveal><p className="section-kicker">Begin your piece</p><h2>Tell us what the occasion deserves.</h2><p>Share your inspiration, preferred fabric and event date. We will confirm availability, next steps and deposit details.</p><div className="contact-numbers"><a href={`tel:${CONTACTS.uk.tel}`}><span>United Kingdom</span>{CONTACTS.uk.display}</a><a href={`tel:${CONTACTS.ng.tel}`}><span>Nigeria</span>{CONTACTS.ng.display}</a></div></Reveal></div>
-          <div className="luxury-form"><PreorderForm /></div>
+          <div className="consultation-copy"><Reveal><p className="section-kicker">Begin your piece</p><h2>Tell us what the occasion deserves.</h2><p>Share your inspiration, preferred fabric and event date. We will confirm availability, next steps and deposit details.</p><div className="contact-numbers"><a href={`tel:${contacts.uk.tel}`}><span>United Kingdom</span>{contacts.uk.display}</a><a href={`tel:${contacts.ng.tel}`}><span>Nigeria</span>{contacts.ng.display}</a></div></Reveal></div>
+          <div className="luxury-form"><PreorderForm customer={customer} token={customerToken} /></div>
         </section>
 
         <section id="appointments" className="appointment-section section-pad"><div><Reveal><p className="section-kicker">Private appointments</p><h2>Request a consultation, fitting or measurement session.</h2><p>Choose your preferred date and time. The atelier will contact you to confirm the appointment.</p></Reveal></div><div className="luxury-form"><AppointmentForm /></div></section>
@@ -483,13 +668,14 @@ export default function App() {
       </main>
 
       <footer className="luxury-footer">
-        <div className="footer-top"><div className="footer-brand"><Monogram size={54}/><h2>Inspired Munachimso <em>Couture</em></h2><p>African heritage, tailored for today.</p></div><div><h3>Explore</h3>{navLinks.map((link) => <a key={link.href} href={link.href}>{link.label}</a>)}</div><div><h3>Contact</h3><a href={`tel:${CONTACTS.uk.tel}`}>UK · {CONTACTS.uk.display}</a><a href={`tel:${CONTACTS.ng.tel}`}>Nigeria · {CONTACTS.ng.display}</a><button type="button" onClick={() => { setContactMessage("Hello Inspired Munachimso Couture, I would like to make an enquiry."); setContactOpen(true); }}>Choose WhatsApp</button><a href="#">Instagram · Add handle</a></div><div><h3>Appointments</h3><p>Consultations are arranged directly with the atelier.</p><button className="footer-cta" type="button" onClick={() => { setContactMessage("Hello Inspired Munachimso Couture, I would like to make an enquiry."); setContactOpen(true); }}>Reserve a fitting ↗</button></div></div>
-        <div className="footer-bottom"><span>© 2026 Inspired Munachimso Couture</span><span>UK · Nigeria · Worldwide enquiries</span></div>
+        <div className="footer-top"><div className="footer-brand"><img className="footer-brand-logo" src="/assets/inspiredmunachimso-igbo-logo.png" alt="Inspiredmunachimso’s Couture Igbo heritage logo" /><h2>{business.business_name || "Inspiredmunachimso’s Couture"}</h2><p>{business.business_tagline}</p></div><div><h3>Explore</h3>{navLinks.map((link) => <a key={link.href} href={link.href}>{link.label}</a>)}</div><div><h3>Contact</h3><a href={`tel:${contacts.uk.tel}`}>{contacts.uk.label} · {contacts.uk.display}</a><a href={`tel:${contacts.ng.tel}`}>{contacts.ng.label} · {contacts.ng.display}</a>{business.business_email ? <a href={`mailto:${business.business_email}`}>{business.business_email}</a> : null}<span className="footer-hours">{business.opening_hours}</span><button type="button" onClick={() => { setContactMessage("Hello Inspiredmunachimso’s Couture, I would like to make an enquiry."); setContactOpen(true); }}>Choose WhatsApp</button>{socialLinks.map(([label,url])=><a key={label} href={url} target="_blank" rel="noreferrer">{label} ↗</a>)}</div><div><h3>Client account</h3><p>Save measurements, orders and favourite looks.</p><button type="button" onClick={() => setPortalOpen(true)}>Open my account</button><button className="footer-cta" type="button" onClick={() => { setContactMessage("Hello Inspiredmunachimso’s Couture, I would like to make an enquiry."); setContactOpen(true); }}>Reserve a fitting ↗</button></div></div>
+        <div className="footer-bottom"><span>© 2026 {business.business_name || "Inspiredmunachimso’s Couture"}</span><span>{business.footer_text}</span></div>
       </footer>
 
-      <button type="button" onClick={() => { setContactMessage("Hello Inspired Munachimso Couture, I would like to make an enquiry."); setContactOpen(true); }} className="wa-fab" aria-label="Choose a WhatsApp number"><WhatsAppIcon /></button>
-      <ProductDetails product={selectedProduct} open={Boolean(selectedProduct)} onClose={() => setSelectedProduct(null)} onContact={enquireProduct} />
-      <ContactChooser open={contactOpen} onClose={() => setContactOpen(false)} message={contactMessage} />
+      <button type="button" onClick={() => { setContactMessage("Hello Inspiredmunachimso’s Couture, I would like to make an enquiry."); setContactOpen(true); }} className="wa-fab" aria-label="Choose a WhatsApp number"><WhatsAppIcon /></button>
+      <ProductDetails product={selectedProduct} open={Boolean(selectedProduct)} onClose={() => setSelectedProduct(null)} onContact={enquireProduct} onWishlist={async (product) => { if (!customerToken) { setSelectedProduct(null); setPortalOpen(true); return; } try { await api.addWishlist(customerToken, product.id); alert("Saved to your wishlist."); } catch (err) { alert(err.message); } }} />
+      <CustomerPortal open={portalOpen} onClose={() => setPortalOpen(false)} token={customerToken} customer={customer} onSession={(tokenValue, profile) => { localStorage.setItem("customer_token", tokenValue); localStorage.setItem("customer_profile", JSON.stringify(profile)); setCustomerToken(tokenValue); setCustomer(profile); }} onLogout={() => { localStorage.removeItem("customer_token"); localStorage.removeItem("customer_profile"); setCustomerToken(""); setCustomer(null); setPortalOpen(false); }} />
+      <ContactChooser open={contactOpen} onClose={() => setContactOpen(false)} message={contactMessage} contacts={contacts} />
     </div>
   );
 }

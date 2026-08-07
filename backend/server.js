@@ -1,32 +1,5 @@
-require("dotenv").config();
-
-const createApp = require("./app");
-const { config, validateEnvironment } = require("./config/env");
-
-const app = createApp();
-const warnings = validateEnvironment();
-
-for (const warning of warnings) {
-  console.warn(`Configuration warning: ${warning}`);
-}
-
-const server = app.listen(config.port, () => {
-  console.log("");
-  console.log("Inspired Munachimso Couture API is running");
-  console.log(`Backend: http://localhost:${config.port}`);
-  console.log(`Admin:   http://localhost:${config.port}/admin`);
-  console.log(`Health:  http://localhost:${config.port}/api/health`);
-  console.log(`Node:    ${process.version}`);
-  console.log(`Mode:    ${config.nodeEnv}`);
-  console.log("");
-});
-
-function shutdown(signal) {
-  console.log(`${signal} received. Closing server...`);
-  server.close(() => process.exit(0));
-  setTimeout(() => process.exit(1), 10000).unref();
-}
-
-process.on("SIGINT", () => shutdown("SIGINT"));
-process.on("SIGTERM", () => shutdown("SIGTERM"));
-process.on("unhandledRejection", (reason) => console.error("Unhandled promise rejection:", reason));
+require('dotenv').config();
+const createApp=require('./app');
+const db=require('./db');
+const {config,validateEnvironment}=require('./config/env');
+(async()=>{try{await db.ready;const app=createApp();for(const warning of validateEnvironment())console.warn(`Configuration warning: ${warning}`);const server=app.listen(config.port,()=>{console.log('');console.log('Inspiredmunachimso’s Couture API is running on Neon PostgreSQL');console.log(`Backend: ${process.env.PUBLIC_API_URL||`http://localhost:${config.port}`}`);console.log(`Admin:   http://localhost:${config.port}/admin`);console.log(`Node:    ${process.version}`);console.log(`Mode:    ${config.nodeEnv}`);console.log('');});async function shutdown(signal){console.log(`${signal} received. Closing server...`);server.close(async()=>{await db.close().catch(()=>{});process.exit(0)});setTimeout(()=>process.exit(1),10000).unref()}process.on('SIGINT',()=>shutdown('SIGINT'));process.on('SIGTERM',()=>shutdown('SIGTERM'));process.on('unhandledRejection',reason=>console.error('Unhandled promise rejection:',reason));}catch(error){console.error('Backend failed to start:',error);process.exit(1);}})();

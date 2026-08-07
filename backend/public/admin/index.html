@@ -3,29 +3,192 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin — Inspired Munachimso Couture</title>
+<title>Admin — Inspiredmunachimso’s Couture</title>
 <link rel="stylesheet" href="admin.css">
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">Inspired Munachimso<span>couture</span> · Admin</div>
+    <div class="brand">Inspiredmunachimso’s <span>Couture</span> · Admin</div>
     <button id="logoutBtn" class="ghost-btn">Log out</button>
   </header>
   <nav class="tabs">
-    <button class="tab-btn active" data-tab="products">Products & Media</button>
+    <button class="tab-btn active" data-tab="dashboard">Command Centre</button>
+    <button class="tab-btn" data-tab="products">Products & Media</button>
+    <button class="tab-btn" data-tab="media-library">Media Library</button>
+    <button class="tab-btn" data-tab="galleries">Gallery Manager</button>
+    <button class="tab-btn" data-tab="collections">Collections & Campaigns</button>
+    <button class="tab-btn" data-tab="settings">Website Settings</button>
     <button class="tab-btn" data-tab="preorders">Pre-Orders</button>
     <button class="tab-btn" data-tab="messages">Messages</button>
     <button class="tab-btn" data-tab="appointments">Appointments</button>
     <button class="tab-btn" data-tab="testimonials">Testimonials</button>
+    <button class="tab-btn" data-tab="customers">Customers</button>
   </nav>
   <main class="content">
-    <section id="tab-products" class="tab-panel active">
+    <section id="tab-dashboard" class="tab-panel active">
+      <div class="dashboard-hero">
+        <div><p class="dashboard-kicker">Business overview</p><h1>Command Centre</h1><p class="helper">A live view of orders, payments, appointments and enquiries.</p></div>
+        <div class="dashboard-actions"><button id="refreshDashboardBtn" class="ghost-btn">Refresh</button><span id="dashboardUpdated" class="helper"></span></div>
+      </div>
+      <div id="dashboardMetrics" class="metric-grid"></div>
+      <div class="dashboard-grid dashboard-grid-main">
+        <article class="dashboard-card chart-card"><div class="card-head"><div><p class="dashboard-kicker">Last six months</p><h2>Business activity</h2></div></div><div id="activityChart" class="activity-chart"></div></article>
+        <article class="dashboard-card"><div class="card-head"><div><p class="dashboard-kicker">Cash position</p><h2>Payments</h2></div></div><div id="paymentSummary" class="payment-summary"></div></article>
+      </div>
+      <div class="dashboard-grid dashboard-grid-three">
+        <article class="dashboard-card"><div class="card-head"><div><p class="dashboard-kicker">Workflow</p><h2>Order stages</h2></div></div><div id="orderStageSummary" class="progress-list"></div></article>
+        <article class="dashboard-card"><div class="card-head"><div><p class="dashboard-kicker">Catalogue</p><h2>Collection mix</h2></div></div><div id="categorySummary" class="progress-list"></div></article>
+        <article class="dashboard-card"><div class="card-head"><div><p class="dashboard-kicker">Schedule</p><h2>Upcoming appointments</h2></div></div><div id="upcomingAppointments" class="compact-list"></div></article>
+      </div>
+      <div class="dashboard-grid dashboard-grid-two">
+        <article class="dashboard-card"><div class="card-head"><div><p class="dashboard-kicker">Latest</p><h2>Recent orders</h2></div><button class="text-action" data-open-tab="preorders">View all</button></div><div id="recentOrders" class="compact-list"></div></article>
+        <article class="dashboard-card"><div class="card-head"><div><p class="dashboard-kicker">Inbox</p><h2>Recent enquiries</h2></div><button class="text-action" data-open-tab="messages">View all</button></div><div id="recentMessages" class="compact-list"></div></article>
+      </div>
+    </section>
+
+    <section id="tab-collections" class="tab-panel">
+      <div class="panel-head"><div><h2>Collections & Campaigns</h2><p class="helper">Group products into luxury collections and schedule homepage campaigns.</p></div><button id="newCollectionBtn" class="primary-btn">+ New collection</button></div>
+      <div id="collectionFormWrap" class="settings-card" hidden><form id="collectionForm"><input type="hidden" id="collection_id"><div class="form-grid"><label>Name<input id="collection_name" required></label><label>Subtitle<input id="collection_subtitle"></label><label class="full-width">Description<textarea id="collection_description" rows="3"></textarea></label><label>Cover URL<input id="collection_cover_url" placeholder="Choose a Media Library URL"></label><label>Status<select id="collection_status"><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></label><label>Featured<select id="collection_featured"><option value="0">No</option><option value="1">Yes</option></select></label><label>Display order<input id="collection_sort" type="number" value="0"></label><label class="full-width">Products<select id="collection_products" multiple size="8"></select></label></div><div class="settings-actions"><button class="primary-btn">Save collection</button><button type="button" id="cancelCollectionBtn" class="ghost-btn">Cancel</button><span id="collectionStatus" class="helper"></span></div></form></div>
+      <div id="collectionsList" class="gallery-admin-list"></div>
+      <hr><div class="panel-head"><div><h2>Campaigns</h2><p class="helper">Publish a timed announcement linked to a collection.</p></div><button id="newCampaignBtn" class="primary-btn">+ New campaign</button></div>
+      <div id="campaignFormWrap" class="settings-card" hidden><form id="campaignForm"><input type="hidden" id="campaign_id"><div class="form-grid"><label>Name<input id="campaign_name" required></label><label>Collection<select id="campaign_collection"></select></label><label class="full-width">Message<textarea id="campaign_message" rows="2"></textarea></label><label>Button text<input id="campaign_button_text" value="Explore"></label><label>Button link<input id="campaign_button_link"></label><label>Start<input id="campaign_start" type="datetime-local"></label><label>End<input id="campaign_end" type="datetime-local"></label><label>Status<select id="campaign_status"><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></label></div><div class="settings-actions"><button class="primary-btn">Save campaign</button><button type="button" id="cancelCampaignBtn" class="ghost-btn">Cancel</button><span id="campaignStatusText" class="helper"></span></div></form></div><div id="campaignsList" class="gallery-admin-list"></div>
+    </section>
+    <section id="tab-settings" class="tab-panel">
+      <div class="panel-head"><div><h2>Hero Manager</h2><p class="helper">Change the homepage hero video, image and wording without editing code.</p></div></div>
+      <div class="settings-layout">
+        <form id="heroSettingsForm" class="settings-card">
+          <div class="form-grid">
+            <label>Hero status <select id="hero_enabled"><option value="1">Enabled</option><option value="0">Use background only</option></select></label>
+            <label>Media type <select id="hero_type"><option value="video">Video</option><option value="image">Image</option></select></label>
+            <label class="full-width">Small heading <input id="hero_kicker" maxlength="120"></label>
+            <label class="full-width">Main headline <input id="hero_title" maxlength="160"></label>
+            <label class="full-width">Italic highlight <input id="hero_highlight" maxlength="80" placeholder="Text inside the headline"></label>
+            <label class="full-width">Description <textarea id="hero_copy" rows="4" maxlength="500"></textarea></label>
+            <label>Primary button text <input id="hero_primary_text" maxlength="60"></label>
+            <label>Primary button link <input id="hero_primary_link" maxlength="160" placeholder="#collections"></label>
+            <label class="full-width">Secondary button text <input id="hero_secondary_text" maxlength="80"></label>
+          </div>
+          <div class="settings-actions"><button type="submit" class="primary-btn">Save hero settings</button><span id="heroSaveStatus" class="helper" aria-live="polite"></span></div>
+        </form>
+        <aside class="settings-card hero-upload-card">
+          <p class="dashboard-kicker">Current media</p>
+          <div id="heroPreview" class="hero-admin-preview"></div>
+          <label class="upload-drop">Upload replacement image or video<input id="hero_media_file" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"></label>
+          <button id="uploadHeroBtn" type="button" class="primary-btn">Upload and publish</button>
+          <p id="heroUploadStatus" class="helper" aria-live="polite"></p>
+          <p class="helper">The restored video is active now. A future upload replaces it automatically while keeping the old layout and text.</p>
+        </aside>
+      </div>
+
+      <div class="panel-head settings-subhead"><div><h2>Craft Section Manager</h2><p class="helper">Control the second video beside “Crafted, not produced”. This is separate from the homepage hero.</p></div></div>
+      <div class="settings-layout">
+        <form id="craftSettingsForm" class="settings-card">
+          <div class="form-grid">
+            <label>Video status <select id="craft_enabled"><option value="1">Show video</option><option value="0">Hide video</option></select></label>
+            <label class="full-width">Small heading <input id="craft_kicker" maxlength="120"></label>
+            <label class="full-width">Main heading <input id="craft_title" maxlength="160"></label>
+            <label class="full-width">Description <textarea id="craft_copy" rows="4" maxlength="600"></textarea></label>
+            <label>Step 1 number <input id="craft_step_1_number" maxlength="8"></label>
+            <label>Step 1 text <input id="craft_step_1_text" maxlength="80"></label>
+            <label>Step 2 number <input id="craft_step_2_number" maxlength="8"></label>
+            <label>Step 2 text <input id="craft_step_2_text" maxlength="80"></label>
+            <label>Step 3 number <input id="craft_step_3_number" maxlength="8"></label>
+            <label>Step 3 text <input id="craft_step_3_text" maxlength="80"></label>
+          </div>
+          <div class="settings-actions"><button type="submit" class="primary-btn">Save craft section</button><span id="craftSaveStatus" class="helper" aria-live="polite"></span></div>
+        </form>
+        <aside class="settings-card hero-upload-card">
+          <p class="dashboard-kicker">Current craft video</p>
+          <div id="craftPreview" class="hero-admin-preview"></div>
+          <label class="upload-drop">Upload replacement craft video<input id="craft_media_file" type="file" accept="video/mp4,video/webm,video/quicktime"></label>
+          <div class="settings-actions settings-actions-wrap"><button id="uploadCraftBtn" type="button" class="primary-btn">Upload and publish</button><button id="removeCraftBtn" type="button" class="danger-btn">Remove video</button></div>
+          <p id="craftUploadStatus" class="helper" aria-live="polite"></p>
+          <p class="helper">Removing the video keeps the wording and layout. You can upload another video whenever you are ready.</p>
+        </aside>
+      </div>
+
+      <div class="panel-head settings-subhead"><div><h2>About & Services Manager</h2><p class="helper">Edit the homepage introduction and service journey without changing code.</p></div></div>
+      <form id="contentSettingsForm" class="settings-card settings-card-wide">
+        <h3>About the house</h3>
+        <div class="form-grid">
+          <label>Small heading <input id="about_kicker" maxlength="120"></label>
+          <label class="full-width">Main heading <input id="about_title" maxlength="180"></label>
+          <label class="full-width">Introduction <textarea id="about_copy" rows="4" maxlength="800"></textarea></label>
+          <label>Link text <input id="about_link_text" maxlength="100"></label>
+          <label>Link destination <input id="about_link_url" maxlength="160" placeholder="#igbo-heritage"></label>
+        </div>
+        <h3 class="settings-section-title">Service journey</h3>
+        <div class="form-grid">
+          <label>Small heading <input id="services_kicker" maxlength="120"></label>
+          <label class="full-width">Main heading <input id="services_title" maxlength="180"></label>
+          <label>Step 1 number <input id="service_1_number" maxlength="8"></label><label>Step 1 title <input id="service_1_title" maxlength="100"></label><label class="full-width">Step 1 description <textarea id="service_1_copy" rows="2" maxlength="400"></textarea></label>
+          <label>Step 2 number <input id="service_2_number" maxlength="8"></label><label>Step 2 title <input id="service_2_title" maxlength="100"></label><label class="full-width">Step 2 description <textarea id="service_2_copy" rows="2" maxlength="400"></textarea></label>
+          <label>Step 3 number <input id="service_3_number" maxlength="8"></label><label>Step 3 title <input id="service_3_title" maxlength="100"></label><label class="full-width">Step 3 description <textarea id="service_3_copy" rows="2" maxlength="400"></textarea></label>
+          <label>Step 4 number <input id="service_4_number" maxlength="8"></label><label>Step 4 title <input id="service_4_title" maxlength="100"></label><label class="full-width">Step 4 description <textarea id="service_4_copy" rows="2" maxlength="400"></textarea></label>
+        </div>
+        <div class="settings-actions"><button type="submit" class="primary-btn">Save about & services</button><span id="contentSaveStatus" class="helper" aria-live="polite"></span></div>
+      </form>
+
+      <div class="panel-head settings-subhead"><div><h2>Business Details & Social Links</h2><p class="helper">Update contact information, locations, opening hours, social accounts, footer text and the homepage announcement.</p></div></div>
+      <form id="businessSettingsForm" class="settings-card settings-card-wide">
+        <h3>Announcement</h3>
+        <div class="form-grid">
+          <label>Announcement status <select id="announcement_enabled"><option value="0">Hidden</option><option value="1">Visible</option></select></label>
+          <label class="full-width">Announcement text <input id="announcement_text" maxlength="220"></label>
+        </div>
+        <h3 class="settings-section-title">Brand and contact details</h3>
+        <div class="form-grid">
+          <label>Business name <input id="business_name" maxlength="120"></label>
+          <label>Tagline <input id="business_tagline" maxlength="180"></label>
+          <label>Business email <input id="business_email" type="email" maxlength="160" placeholder="hello@example.com"></label>
+          <label>Opening hours <input id="opening_hours" maxlength="160" placeholder="By appointment"></label>
+          <label>UK location <input id="uk_location" maxlength="120"></label>
+          <label>UK display number <input id="uk_phone_display" maxlength="40"></label>
+          <label>UK telephone link <input id="uk_phone_tel" maxlength="40" placeholder="+447..."></label>
+          <label>UK WhatsApp number <input id="uk_whatsapp" maxlength="40" placeholder="447..."></label>
+          <label>Nigeria location <input id="ng_location" maxlength="120"></label>
+          <label>Nigeria display number <input id="ng_phone_display" maxlength="40"></label>
+          <label>Nigeria telephone link <input id="ng_phone_tel" maxlength="40" placeholder="+234..."></label>
+          <label>Nigeria WhatsApp number <input id="ng_whatsapp" maxlength="40" placeholder="234..."></label>
+        </div>
+        <h3 class="settings-section-title">Social links and footer</h3>
+        <div class="form-grid">
+          <label>Instagram URL <input id="instagram_url" type="url" maxlength="240" placeholder="https://instagram.com/..."></label>
+          <label>Facebook URL <input id="facebook_url" type="url" maxlength="240"></label>
+          <label>TikTok URL <input id="tiktok_url" type="url" maxlength="240"></label>
+          <label>YouTube URL <input id="youtube_url" type="url" maxlength="240"></label>
+          <label class="full-width">Footer text <input id="footer_text" maxlength="220"></label>
+        </div>
+        <div class="settings-actions"><button type="submit" class="primary-btn">Save business details</button><span id="businessSaveStatus" class="helper" aria-live="polite"></span></div>
+      </form>
+    </section>
+    <section id="tab-media-library" class="tab-panel">
+      <div class="panel-head"><div><h2>Media Library</h2><p class="helper">Upload, organise, restore and safely remove images, videos and documents.</p></div><button id="mediaUploadToggle" class="primary-btn">+ Upload media</button></div>
+      <div id="mediaUploadPanel" class="settings-card media-upload-panel hidden">
+        <div class="form-grid"><label>Category <select id="libraryUploadCategory"><option value="general">General</option><option value="hero">Hero</option><option value="craft">Craft</option><option value="products">Products</option><option value="gallery">Gallery</option><option value="testimonials">Testimonials</option><option value="documents">Documents</option></select></label><label>Tags <input id="libraryUploadTags" placeholder="wedding, isi agu, bridal"></label></div>
+        <label class="upload-drop">Choose images, videos or PDFs<input id="libraryUploadFiles" type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,application/pdf"></label>
+        <div class="settings-actions"><button id="libraryUploadBtn" type="button" class="primary-btn">Upload files</button><span id="libraryUploadStatus" class="helper"></span></div>
+      </div>
+      <div id="mediaSummary" class="metric-grid media-summary-grid"></div>
+      <div class="media-toolbar"><input id="mediaSearch" placeholder="Search file name, tag or category"><select id="mediaTypeFilter"><option value="">All types</option><option value="image">Images</option><option value="video">Videos</option><option value="document">Documents</option></select><select id="mediaCategoryFilter"><option value="">All categories</option><option value="hero">Hero</option><option value="craft">Craft</option><option value="products">Products</option><option value="gallery">Gallery</option><option value="testimonials">Testimonials</option><option value="documents">Documents</option><option value="general">General</option></select><button id="refreshMediaBtn" class="ghost-btn">Refresh</button><button id="showTrashBtn" class="ghost-btn">Recycle Bin</button></div>
+      <div id="mediaLibraryGrid" class="library-grid"></div>
+      <div id="mediaTrashPanel" class="hidden"><div class="panel-head settings-subhead"><div><h2>Recycle Bin</h2><p class="helper">Restore files or permanently delete them from storage.</p></div><button id="hideTrashBtn" class="ghost-btn">Back to library</button></div><div id="mediaTrashGrid" class="library-grid"></div></div>
+    </section>
+    <section id="tab-galleries" class="tab-panel">
+      <div class="panel-head"><div><h2>Gallery Manager</h2><p class="helper">Create portfolio albums from media already stored in the Media Library.</p></div><button id="newGalleryBtn" class="primary-btn">+ New album</button></div>
+      <div id="galleryFormWrap" class="settings-card gallery-form-wrap" hidden>
+        <form id="galleryForm"><input type="hidden" id="gallery_id"><div class="form-grid"><label>Album title<input id="gallery_title" required maxlength="120"></label><label>Display order<input id="gallery_sort_order" type="number" value="0"></label><label class="full-width">Description<textarea id="gallery_description" rows="3" maxlength="600"></textarea></label><label>Published<select id="gallery_is_published"><option value="1">Published</option><option value="0">Hidden</option></select></label><label>Featured<select id="gallery_is_featured"><option value="0">No</option><option value="1">Yes</option></select></label></div><div class="settings-actions"><button class="primary-btn">Save album</button><button type="button" id="cancelGalleryBtn" class="ghost-btn">Cancel</button><span id="galleryFormStatus" class="helper"></span></div></form>
+      </div>
+      <div id="galleryAlbums" class="gallery-admin-grid"></div>
+    </section>
+    <section id="tab-products" class="tab-panel">
       <div class="panel-head"><div><h2>Products</h2><p class="helper">Add products, then upload multiple images and videos.</p></div><button id="newProductBtn" class="primary-btn">+ Add product</button></div>
       <div class="table-wrap"><table class="data-table"><thead><tr><th>Preview</th><th>Name</th><th>Category</th><th>Price</th><th>Media</th><th>Visible</th><th></th></tr></thead><tbody id="productsBody"></tbody></table></div>
     </section>
     <section id="tab-preorders" class="tab-panel"><div class="panel-head"><div><h2>Orders & Payments</h2><p class="helper">Set the deposit amount and order stage. Customers can track and pay using their reference.</p></div></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Date / Reference</th><th>Customer</th><th>Style</th><th>Order stage</th><th>Deposit</th><th>Payment</th><th></th></tr></thead><tbody id="preordersBody"></tbody></table></div></section>
     <section id="tab-appointments" class="tab-panel"><div class="panel-head"><div><h2>Appointments</h2><p class="helper">Confirm, reschedule or complete appointment requests.</p></div></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Reference</th><th>Customer</th><th>Type</th><th>Preferred date</th><th>Status</th><th></th></tr></thead><tbody id="appointmentsBody"></tbody></table></div></section>
     <section id="tab-testimonials" class="tab-panel"><div class="panel-head"><div><h2>Testimonials</h2><p class="helper">Add and publish client reviews on the homepage.</p></div><button id="addTestimonialBtn" class="primary-btn">+ Add testimonial</button></div><div id="testimonialFormWrap" class="inline-editor hidden"><input id="t_name" placeholder="Customer name"><input id="t_location" placeholder="Location"><input id="t_rating" type="number" min="1" max="5" value="5"><textarea id="t_quote" placeholder="Customer review"></textarea><label class="checkbox-row"><input id="t_published" type="checkbox"> Publish now</label><button id="saveTestimonialBtn" class="primary-btn">Save testimonial</button></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Customer</th><th>Review</th><th>Rating</th><th>Published</th><th></th></tr></thead><tbody id="testimonialsBody"></tbody></table></div></section>
+    <section id="tab-customers" class="tab-panel"><div class="panel-head"><div><h2>Customers</h2><p class="helper">Registered customer accounts, linked orders and appointments.</p></div></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Joined</th><th>Customer</th><th>Contact</th><th>Orders</th><th>Appointments</th><th>Last login</th><th>Status</th></tr></thead><tbody id="customersBody"></tbody></table></div></section>
     <section id="tab-messages" class="tab-panel"><div class="panel-head"><h2>Messages</h2></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Date</th><th>Type</th><th>Customer</th><th>Phone</th><th>Message</th><th>Status</th><th></th></tr></thead><tbody id="messagesBody"></tbody></table></div></section>
   </main>
 

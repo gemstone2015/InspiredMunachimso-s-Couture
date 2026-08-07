@@ -1,9 +1,27 @@
-const fs=require('fs');const path=require('path');const express=require('express');const multer=require('multer');const {v2:cloudinary}=require('cloudinary');const db=require('../db');const adminAuth=require('../middleware/adminAuth');const router=express.Router();
-const uploadDir=process.env.UPLOAD_DIR||path.join(__dirname,'..','uploads');fs.mkdirSync(uploadDir,{recursive:true});const allowed=new Set(['image/jpeg','image/png','image/webp','application/pdf']);
-const upload=multer({storage:multer.diskStorage({destination:(_r,_f,cb)=>cb(null,uploadDir),filename:(_r,f,cb)=>cb(null,`${Date.now()}-${Math.random().toString(36).slice(2,8)}${path.extname(f.originalname).toLowerCase()}`)}),limits:{files:6,fileSize:Number(process.env.MAX_CUSTOMER_UPLOAD_MB||12)*1024*1024},fileFilter:(_r,f,cb)=>allowed.has(f.mimetype)?cb(null,true):cb(new Error('Only JPG, PNG, WebP and PDF files are allowed.'))});
-const cloud=Boolean(process.env.CLOUDINARY_CLOUD_NAME&&process.env.CLOUDINARY_API_KEY&&process.env.CLOUDINARY_API_SECRET);if(cloud)cloudinary.config({cloud_name:process.env.CLOUDINARY_CLOUD_NAME,api_key:process.env.CLOUDINARY_API_KEY,api_secret:process.env.CLOUDINARY_API_SECRET});
-function phone(v=''){return String(v).replace(/\D/g,'').slice(-10)}
+const fs = require('fs');
+const path = require('path');
+const express = require('express');
+const multer = require('multer');
+const { v2:cloudinary } = require('cloudinary');
+const db = require('../db');
+const adminAuth = require('../middleware/adminAuth');
+const router = express.Router();
+const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname,'..','uploads');
+fs.mkdirSync(uploadDir,{recursive:true});
+const allowed = new Set(['image/jpeg','image/png','image/webp','application/pdf']);
+const upload = multer({storage:multer.diskStorage({destination:(_r,_f,cb)=>cb(null,uploadDir),filename:(_r,f,cb)=>cb(null,`${Date.now()}-${Math.random().toString(36).slice(2,8)}${path.extname(f.originalname).toLowerCase()}`)}),limits:{files:6,fileSize:Number(process.env.MAX_CUSTOMER_UPLOAD_MB||12)*1024*1024},fileFilter:(_r,f,cb)=>allowed.has(f.mimetype)?cb(null,true):cb(new Error('Only JPG, PNG, WebP and PDF files are allowed.'))});
+const cloud = Boolean(process.env.CLOUDINARY_CLOUD_NAME&&process.env.CLOUDINARY_API_KEY&&process.env.CLOUDINARY_API_SECRET);
+if (cloud) cloudinary.config({cloud_name:process.env.CLOUDINARY_CLOUD_NAME,api_key:process.env.CLOUDINARY_API_KEY,api_secret:process.env.CLOUDINARY_API_SECRET});
+const phone = (v='') => String(v).replace(/\D/g,'').slice(-10);
 async function save(file,req){if(cloud){const r=await cloudinary.uploader.upload(file.path,{folder:`${process.env.CLOUDINARY_FOLDER||'inspired-munachimso-couture'}/customer-orders`,resource_type:'auto'});fs.unlink(file.path,()=>{});return {url:r.secure_url,pid:r.public_id}}const base=process.env.PUBLIC_API_URL||`${req.protocol}://${req.get('host')}`;return {url:`${base}/uploads/${file.filename}`,pid:file.filename}}
-router.post('/:reference',upload.array('files',6),async(req,res,next)=>{try{const order=db.prepare('SELECT * FROM preorders WHERE order_reference=?').get(String(req.params.reference).toUpperCase());if(!order||phone(order.phone)!==phone(req.body.phone))return res.status(404).json({error:'Order reference and phone number do not match.'});if(!req.files?.length)return res.status(400).json({error:'Choose at least one file.'});const out=[];for(const f of req.files){const s=await save(f,req);const r=db.prepare(`INSERT INTO preorder_files (preorder_id,original_name,media_type,media_url,public_id) VALUES (?,?,?,?,?)`).run(order.id,f.originalname,f.mimetype==='application/pdf'?'document':'image',s.url,s.pid);out.push(db.prepare('SELECT * FROM preorder_files WHERE id=?').get(r.lastInsertRowid))}res.status(201).json(out)}catch(e){next(e)}});
-router.get('/:orderId',adminAuth,(req,res)=>res.json(db.prepare('SELECT * FROM preorder_files WHERE preorder_id=? ORDER BY id').all(req.params.orderId)));
-router.delete('/file/:id',adminAuth,(req,res)=>{db.prepare('DELETE FROM preorder_files WHERE id=?').run(req.params.id);res.json({deleted:true})});module.exports=router;
+router.post('/:reference',upload.array('files',6),async(req,res)=>{
+  const order=await db.prepare('SELECT * FROM preorders WHERE order_reference=?').get(String(req.params.reference).toUpperCase());
+  if(!order||phone(order.phone)!==phone(req.body.phone))return res.status(404).json({error:'Order reference and phone number do not match.'});
+  if(!req.files?.length)return res.status(400).json({error:'Choose at least one file.'});
+  const out=[];
+  for(const f of req.files){const s=await save(f,req);const r=await db.prepare(`INSERT INTO preorder_files (preorder_id,original_name,media_type,media_url,public_id) VALUES (?,?,?,?,?)`).run(order.id,f.originalname,f.mimetype==='application/pdf'?'document':'image',s.url,s.pid);out.push(await db.prepare('SELECT * FROM preorder_files WHERE id=?').get(r.lastInsertRowid));}
+  res.status(201).json(out);
+});
+router.get('/:orderId',adminAuth,async(req,res)=>res.json(await db.prepare('SELECT * FROM preorder_files WHERE preorder_id=? ORDER BY id').all(req.params.orderId)));
+router.delete('/file/:id',adminAuth,async(req,res)=>{await db.prepare('DELETE FROM preorder_files WHERE id=?').run(req.params.id);res.json({deleted:true})});
+module.exports=router;

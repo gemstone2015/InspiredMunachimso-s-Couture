@@ -1,7 +1,7 @@
 {
   "name": "inspiredmunachimsocouture-backend",
-  "version": "1.4.0",
-  "description": "Node.js 24-compatible backend API for Inspired Munachimso Couture.",
+  "version": "4.0.0-neon",
+  "description": "Neon PostgreSQL backend API for Inspiredmunachimso\u2019s Couture.",
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
@@ -9,9 +9,14 @@
     "dev": "node server.js",
     "seed": "node seed.js",
     "reset-admin": "node seed.js --admin-only",
-    "check": "node -e \"require('./db'); console.log('Database OK')\"",
+    "check": "node scripts/check-db.js",
     "check:syntax": "node scripts/check-syntax.js",
-    "verify": "npm run check && npm run check:syntax"
+    "verify": "npm run check && npm run check:syntax",
+    "backup": "node scripts/backup.js",
+    "restore": "node scripts/restore.js",
+    "start:production": "NODE_ENV=production node server.js",
+    "smoke": "node scripts/smoke-test.js",
+    "predeploy": "npm run verify"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -23,7 +28,9 @@
     "multer": "^2.0.2",
     "helmet": "^8.0.0",
     "express-rate-limit": "^7.4.1",
-    "stripe": "^18.5.0"
+    "stripe": "^18.5.0",
+    "pg": "^8.13.1",
+    "express-async-errors": "^3.1.1"
   },
   "engines": {
     "node": ">=24.0.0"

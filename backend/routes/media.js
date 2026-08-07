@@ -1,103 +1,11 @@
-const fs = require("fs");
-const path = require("path");
-const express = require("express");
-const multer = require("multer");
-const { v2: cloudinary } = require("cloudinary");
-const db = require("../db");
-const adminAuth = require("../middleware/adminAuth");
-
-const router = express.Router();
-const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, "..", "uploads");
-fs.mkdirSync(uploadDir, { recursive: true });
-
-const allowedMime = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm", "video/quicktime"]);
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, uploadDir),
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase() || (file.mimetype.startsWith("video/") ? ".mp4" : ".jpg");
-    cb(null, `${Date.now()}-${Math.random().toString(36).slice(2, 9)}${ext}`);
-  },
-});
-const upload = multer({
-  storage,
-  limits: { files: 12, fileSize: Number(process.env.MAX_UPLOAD_MB || 80) * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => allowedMime.has(file.mimetype) ? cb(null, true) : cb(new Error("Unsupported file type.")),
-});
-
-const cloudinaryEnabled = Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
-if (cloudinaryEnabled) {
-  cloudinary.config({ cloud_name: process.env.CLOUDINARY_CLOUD_NAME, api_key: process.env.CLOUDINARY_API_KEY, api_secret: process.env.CLOUDINARY_API_SECRET });
-}
-
-async function saveFile(file, req) {
-  const mediaType = file.mimetype.startsWith("video/") ? "video" : "image";
-  if (cloudinaryEnabled) {
-    const result = await cloudinary.uploader.upload(file.path, {
-      folder: process.env.CLOUDINARY_FOLDER || "inspired-munachimso-couture",
-      resource_type: mediaType,
-      transformation: mediaType === "image" ? [{ quality: "auto", fetch_format: "auto" }] : undefined,
-    });
-    fs.unlink(file.path, () => {});
-    return {
-      media_type: mediaType,
-      media_url: result.secure_url,
-      thumbnail_url: mediaType === "video" ? result.secure_url.replace(/\.[^.]+$/, ".jpg") : result.secure_url,
-      public_id: result.public_id,
-    };
-  }
-  const baseUrl = process.env.PUBLIC_API_URL || `${req.protocol}://${req.get("host")}`;
-  return { media_type: mediaType, media_url: `${baseUrl}/uploads/${file.filename}`, thumbnail_url: mediaType === "image" ? `${baseUrl}/uploads/${file.filename}` : "", public_id: file.filename };
-}
-
-router.post("/products/:productId", adminAuth, upload.array("media", 12), async (req, res, next) => {
-  try {
-    const product = db.prepare("SELECT id FROM products WHERE id = ?").get(req.params.productId);
-    if (!product) return res.status(404).json({ error: "Product not found." });
-    if (!req.files?.length) return res.status(400).json({ error: "Choose at least one image or video." });
-    const currentCount = db.prepare("SELECT COUNT(*) AS count FROM product_media WHERE product_id = ?").get(product.id).count;
-    const insert = db.prepare(`INSERT INTO product_media (product_id, media_type, media_url, thumbnail_url, public_id, alt_text, sort_order, is_cover) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
-    const saved = [];
-    for (let i = 0; i < req.files.length; i += 1) {
-      const uploaded = await saveFile(req.files[i], req);
-      const result = insert.run(product.id, uploaded.media_type, uploaded.media_url, uploaded.thumbnail_url, uploaded.public_id, req.body.alt_text || "", currentCount + i, currentCount === 0 && i === 0 ? 1 : 0);
-      saved.push(db.prepare("SELECT * FROM product_media WHERE id = ?").get(result.lastInsertRowid));
-    }
-    res.status(201).json(saved);
-  } catch (err) { next(err); }
-});
-
-router.patch("/:id", adminAuth, (req, res) => {
-  const existing = db.prepare("SELECT * FROM product_media WHERE id = ?").get(req.params.id);
-  if (!existing) return res.status(404).json({ error: "Media not found." });
-  const { alt_text, sort_order, is_cover } = req.body;
-  db.exec("BEGIN");
-  try {
-    if (is_cover) db.prepare("UPDATE product_media SET is_cover = 0 WHERE product_id = ?").run(existing.product_id);
-    db.prepare("UPDATE product_media SET alt_text=?, sort_order=?, is_cover=? WHERE id=?").run(alt_text ?? existing.alt_text, Number(sort_order ?? existing.sort_order), is_cover ? 1 : 0, existing.id);
-    db.exec("COMMIT");
-  } catch (error) {
-    db.exec("ROLLBACK");
-    throw error;
-  }
-  res.json(db.prepare("SELECT * FROM product_media WHERE id = ?").get(existing.id));
-});
-
-router.delete("/:id", adminAuth, async (req, res, next) => {
-  try {
-    const media = db.prepare("SELECT * FROM product_media WHERE id = ?").get(req.params.id);
-    if (!media) return res.status(404).json({ error: "Media not found." });
-    if (cloudinaryEnabled && media.public_id) {
-      await cloudinary.uploader.destroy(media.public_id, { resource_type: media.media_type });
-    } else if (media.public_id && !media.public_id.includes("/")) {
-      fs.unlink(path.join(uploadDir, media.public_id), () => {});
-    }
-    db.prepare("DELETE FROM product_media WHERE id = ?").run(media.id);
-    if (media.is_cover) {
-      const nextMedia = db.prepare("SELECT id FROM product_media WHERE product_id = ? ORDER BY sort_order, id LIMIT 1").get(media.product_id);
-      if (nextMedia) db.prepare("UPDATE product_media SET is_cover = 1 WHERE id = ?").run(nextMedia.id);
-    }
-    res.json({ deleted: true });
-  } catch (err) { next(err); }
-});
-
-module.exports = router;
+const fs=require('fs');const path=require('path');const express=require('express');const multer=require('multer');const {v2:cloudinary}=require('cloudinary');const db=require('../db');const adminAuth=require('../middleware/adminAuth');
+const router=express.Router();const uploadDir=process.env.UPLOAD_DIR||path.join(__dirname,'..','uploads');fs.mkdirSync(uploadDir,{recursive:true});
+const allowedMime=new Set(['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm','video/quicktime']);
+const storage=multer.diskStorage({destination:(_req,_file,cb)=>cb(null,uploadDir),filename:(_req,file,cb)=>{const ext=path.extname(file.originalname).toLowerCase()||(file.mimetype.startsWith('video/')?'.mp4':'.jpg');cb(null,`${Date.now()}-${Math.random().toString(36).slice(2,9)}${ext}`)}});
+const upload=multer({storage,limits:{files:12,fileSize:Number(process.env.MAX_UPLOAD_MB||80)*1024*1024},fileFilter:(_req,file,cb)=>allowedMime.has(file.mimetype)?cb(null,true):cb(new Error('Unsupported file type.'))});
+const cloudinaryEnabled=Boolean(process.env.CLOUDINARY_CLOUD_NAME&&process.env.CLOUDINARY_API_KEY&&process.env.CLOUDINARY_API_SECRET);if(cloudinaryEnabled)cloudinary.config({cloud_name:process.env.CLOUDINARY_CLOUD_NAME,api_key:process.env.CLOUDINARY_API_KEY,api_secret:process.env.CLOUDINARY_API_SECRET});
+async function saveFile(file,req){const mediaType=file.mimetype.startsWith('video/')?'video':'image';if(cloudinaryEnabled){const result=await cloudinary.uploader.upload(file.path,{folder:process.env.CLOUDINARY_FOLDER||'inspired-munachimso-couture',resource_type:mediaType,transformation:mediaType==='image'?[{quality:'auto',fetch_format:'auto'}]:undefined});fs.unlink(file.path,()=>{});return{media_type:mediaType,media_url:result.secure_url,thumbnail_url:mediaType==='video'?result.secure_url.replace(/\.[^.]+$/,'.jpg'):result.secure_url,public_id:result.public_id}}const baseUrl=process.env.PUBLIC_API_URL||`${req.protocol}://${req.get('host')}`;return{media_type:mediaType,media_url:`${baseUrl}/uploads/${file.filename}`,thumbnail_url:mediaType==='image'?`${baseUrl}/uploads/${file.filename}`:'',public_id:file.filename}}
+router.post('/products/:productId',adminAuth,upload.array('media',12),async(req,res)=>{const product=await db.prepare('SELECT id FROM products WHERE id = ?').get(req.params.productId);if(!product)return res.status(404).json({error:'Product not found.'});if(!req.files?.length)return res.status(400).json({error:'Choose at least one image or video.'});const currentCount=Number((await db.prepare('SELECT COUNT(*) AS count FROM product_media WHERE product_id = ?').get(product.id)).count||0);const insert=db.prepare('INSERT INTO product_media (product_id,media_type,media_url,thumbnail_url,public_id,alt_text,sort_order,is_cover) VALUES (?,?,?,?,?,?,?,?)');const saved=[];for(let i=0;i<req.files.length;i+=1){const uploaded=await saveFile(req.files[i],req);const result=await insert.run(product.id,uploaded.media_type,uploaded.media_url,uploaded.thumbnail_url,uploaded.public_id,req.body.alt_text||'',currentCount+i,currentCount===0&&i===0?1:0);saved.push(await db.prepare('SELECT * FROM product_media WHERE id = ?').get(result.lastInsertRowid))}res.status(201).json(saved)});
+router.patch('/:id',adminAuth,async(req,res)=>{const existing=await db.prepare('SELECT * FROM product_media WHERE id = ?').get(req.params.id);if(!existing)return res.status(404).json({error:'Media not found.'});const{alt_text,sort_order,is_cover}=req.body;await db.transaction(async tx=>{if(is_cover)await tx.prepare('UPDATE product_media SET is_cover = 0 WHERE product_id = ?').run(existing.product_id);await tx.prepare('UPDATE product_media SET alt_text=?,sort_order=?,is_cover=? WHERE id=?').run(alt_text??existing.alt_text,Number(sort_order??existing.sort_order),is_cover?1:0,existing.id)});res.json(await db.prepare('SELECT * FROM product_media WHERE id = ?').get(existing.id))});
+router.delete('/:id',adminAuth,async(req,res)=>{const media=await db.prepare('SELECT * FROM product_media WHERE id = ?').get(req.params.id);if(!media)return res.status(404).json({error:'Media not found.'});if(cloudinaryEnabled&&media.public_id)await cloudinary.uploader.destroy(media.public_id,{resource_type:media.media_type});else if(media.public_id&&!media.public_id.includes('/'))fs.unlink(path.join(uploadDir,media.public_id),()=>{});await db.prepare('DELETE FROM product_media WHERE id = ?').run(media.id);if(media.is_cover){const nextMedia=await db.prepare('SELECT id FROM product_media WHERE product_id = ? ORDER BY sort_order,id LIMIT 1').get(media.product_id);if(nextMedia)await db.prepare('UPDATE product_media SET is_cover = 1 WHERE id = ?').run(nextMedia.id)}res.json({deleted:true})});
+module.exports=router;

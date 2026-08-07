@@ -14,7 +14,7 @@ Later add to `backend/.env`:
 
 ```
 RESEND_API_KEY=
-EMAIL_FROM=Inspired Munachimso Couture <orders@yourdomain.com>
+EMAIL_FROM=Inspiredmunachimso’s Couture <orders@yourdomain.com>
 BUSINESS_EMAIL=
 MAX_CUSTOMER_UPLOAD_MB=12
 ```

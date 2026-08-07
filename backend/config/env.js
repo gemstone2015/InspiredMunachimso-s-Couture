@@ -41,6 +41,10 @@ const config = {
 function validateEnvironment() {
   const warnings = [];
 
+  if (!process.env.DATABASE_URL) {
+    warnings.push("DATABASE_URL is missing. Add your Neon PostgreSQL connection string.");
+  }
+
   if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 24) {
     warnings.push("JWT_SECRET is missing or too short. Use at least 24 characters before deployment.");
   }
