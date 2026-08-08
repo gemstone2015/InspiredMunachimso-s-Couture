@@ -51,21 +51,97 @@
 @media(max-width:700px){.brand-logo{width:42px;height:42px}}
 
 
-/* Branding variant: Professional — polished, architectural, restrained. */
-.style-professional{--ink:#0d0e0f;--ink-soft:#151617;--ink-alt:#1b1c1d;--ivory:#f7f4ee;--gold:#b28b50;--gold-light:#e0c69a;--oxblood:#653138;--line:rgba(247,244,238,.14)}
-.style-professional .site-header.is-scrolled{background:rgba(13,14,15,.94);box-shadow:0 16px 50px rgba(0,0,0,.18)}
-.style-professional .nav-inner{height:96px}
-.style-professional .brand-logo{border-radius:8px;width:58px;height:58px;box-shadow:none;border-color:rgba(224,198,154,.45)}
-.style-professional .brand-lockup strong{font-family:'Italiana',serif;font-size:1.08rem;letter-spacing:.025em}
-.style-professional .brand-lockup em{font-family:'Jost',sans-serif;font-style:normal;font-size:.62rem;text-transform:uppercase;letter-spacing:.22em;margin-top:5px}
-.style-professional .luxury-hero:after{content:'';position:absolute;inset:auto 0 0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);z-index:3}
-.style-professional .hero-content h1{max-width:10ch;letter-spacing:-.02em}
-.style-professional .section-pad{padding-top:145px;padding-bottom:145px}
-.style-professional .collection-panels,.style-professional .luxury-media,.style-professional .track-order-card,.style-professional .customer-portal{border-radius:10px;overflow:hidden}
-.style-professional .collection-panel{min-height:600px}
-.style-professional .luxury-product-copy{padding:20px 2px 0}
-.style-professional .primary-btn,.style-professional .nav-cta{border-radius:2px;padding:15px 25px}
-.style-professional .editorial-intro{background:#f7f4ee}
-.style-professional .footer-brand-logo{border-radius:10px;width:min(240px,100%)}
-.style-professional .public-gallery-grid figure{border-radius:8px}
-.style-professional .campaign-strip{font-weight:500}
+/* =========================================================
+   FINAL DEPLOYMENT HEADER FIX
+   Keeps the Inspiredmunachimso’s Couture brand clear of
+   Collections and prevents desktop navigation collisions.
+   ========================================================= */
+@media (min-width:1101px){
+  .nav-inner{
+    max-width:1440px;
+    padding-left:28px;
+    padding-right:28px;
+    gap:20px;
+  }
+
+  .brand-lockup{
+    flex:0 0 auto;
+    min-width:250px;
+    margin-right:10px;
+    gap:11px;
+  }
+
+  .brand-lockup span{
+    min-width:0;
+    white-space:nowrap;
+  }
+
+  .brand-lockup strong{
+    font-size:.96rem;
+  }
+
+  .brand-lockup em{
+    font-size:.78rem;
+  }
+
+  .brand-logo{
+    width:48px;
+    height:48px;
+    flex:0 0 48px;
+  }
+
+  .desktop-nav{
+    flex:1 1 auto;
+    justify-content:center;
+    gap:clamp(14px,1.35vw,24px);
+    min-width:0;
+  }
+
+  .desktop-nav a{
+    font-size:clamp(.60rem,.56vw,.69rem);
+    letter-spacing:.10em;
+    white-space:nowrap;
+  }
+
+  .account-btn{
+    flex:0 0 auto;
+    white-space:nowrap;
+  }
+
+  .nav-cta{
+    flex:0 0 auto;
+    padding:13px 17px;
+    white-space:nowrap;
+  }
+}
+
+/* On medium laptops switch to the mobile menu before content collides. */
+@media (min-width:901px) and (max-width:1100px){
+  .desktop-nav,
+  .desktop-only{
+    display:none !important;
+  }
+
+  .mobile-only{
+    display:grid !important;
+  }
+
+  .nav-inner{
+    gap:18px;
+  }
+
+  .brand-lockup{
+    margin-right:auto;
+  }
+}
+
+@media (max-width:900px){
+  .desktop-nav,
+  .desktop-only{
+    display:none !important;
+  }
+
+  .mobile-only{
+    display:grid !important;
+  }
+}

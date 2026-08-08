@@ -26,7 +26,7 @@ services:
       - key: WHATSAPP_UK_NUMBER
         value: "447523864253"
       - key: WHATSAPP_NG_NUMBER
-        value: "2347397023326"
+        value: "2347035508352"
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
       - key: CLOUDINARY_API_KEY

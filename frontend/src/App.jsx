@@ -37,12 +37,12 @@ const DEFAULT_BUSINESS = {
   business_name: "Inspiredmunachimso’s Couture",
   business_tagline: "African heritage, tailored for today.",
   business_email: "",
-  uk_phone_display: "07523 864253",
+  uk_phone_display: "+44 7523 864253",
   uk_phone_tel: "+447523864253",
   uk_whatsapp: "447523864253",
-  ng_phone_display: "+234 739 702 3326",
-  ng_phone_tel: "+2347397023326",
-  ng_whatsapp: "2347397023326",
+  ng_phone_display: "+234 703 550 8352",
+  ng_phone_tel: "+2347035508352",
+  ng_whatsapp: "2347035508352",
   uk_location: "United Kingdom",
   ng_location: "Nigeria",
   opening_hours: "By appointment",
@@ -540,7 +540,7 @@ export default function App() {
   ].filter(([, url]) => url);
 
   return (
-    <div className="site-shell style-professional">
+    <div className="site-shell style-classic">
       <a className="skip-link" href="#main">Skip to content</a>
       {business.announcement_enabled === "1" && business.announcement_text ? <div className="announcement-bar">{business.announcement_text}</div> : null}
 

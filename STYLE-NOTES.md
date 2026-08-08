@@ -1,6 +1,6 @@
-# Professional styling
+# Classic styling
 
-A cleaner architectural fashion-house treatment: charcoal/ivory, controlled gold, sharper typography, more whitespace and restrained surfaces.
+The current restrained black, ivory and muted-gold styling you already prefer. No visual redesign beyond the existing Igbo logo integration.
 
 All business functionality is identical across the three Neon PostgreSQL variants.
 
