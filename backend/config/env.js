@@ -32,7 +32,14 @@ const config = {
   rootDir,
   uploadDirectory: process.env.UPLOAD_DIR || path.join(rootDir, "uploads"),
   adminDirectory: path.join(rootDir, "public", "admin"),
-  allowedOrigins: [...new Set([...localOrigins, ...csvFromEnv("ALLOWED_ORIGINS")])],
+  allowedOrigins: [
+  ...new Set([
+    ...localOrigins,
+    ...csvFromEnv("ALLOWED_ORIGINS"),
+    process.env.RENDER_EXTERNAL_URL,
+    process.env.PUBLIC_API_URL,
+  ].filter(Boolean)),
+],
   maxUploadMb: numberFromEnv("MAX_UPLOAD_MB", 80),
   publicSiteUrl: process.env.PUBLIC_SITE_URL || "http://localhost:5173",
   mediaStorage: process.env.CLOUDINARY_CLOUD_NAME ? "cloudinary" : "local",
